@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary">#1976D2</color>
+    <color name="primary_dark">#1565C0</color>
+    <color name="primary_light">#E3F2FD</color>
+    <color name="primary_variant">#0D47A1</color>
+    <color name="on_primary">#FFFFFF</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#FF5722</color>
+    <color name="secondary_variant">#E64A19</color>
+    <color name="on_secondary">#FFFFFF</color>
+    
+    <!-- Accent Colors -->
+    <color name="accent">#4CAF50</color>
+    <color name="accent_variant">#388E3C</color>
+    
+    <!-- Surface Colors -->
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#212121</color>
+    <color name="background">#FAFAFA</color>
+    <color name="background_light">#F5F5F5</color>
+    <color name="on_background">#212121</color>
+    
+    <!-- Status Colors -->
+    <color name="error">#F44336</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="warning">#FF9800</color>
+    <color name="success">#4CAF50</color>
+    <color name="info">#2196F3</color>
+    
+    <!-- UI Colors -->
+    <color name="divider">#E0E0E0</color>
+    <color name="border_light">#E0E0E0</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    
+    <!-- Business Colors -->
+    <color name="profit">#4CAF50</color>
+    <color name="loss">#F44336</color>
+    <color name="neutral">#9E9E9E</color>
+    
+    <!-- Legacy Colors (for compatibility) -->
+    <color name="colorPrimary">#1976D2</color>
+    <color name="colorPrimaryDark">#1565C0</color>
+    <color name="colorPrimaryVariant">#0D47A1</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorSecondary">#FF5722</color>
+    <color name="colorSecondaryVariant">#E64A19</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
+    <color name="colorAccent">#4CAF50</color>
+    <color name="colorAccentVariant">#388E3C</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnSurface">#212121</color>
+    <color name="colorBackground">#FAFAFA</color>
+    <color name="colorOnBackground">#212121</color>
+    <color name="colorError">#F44336</color>
+    <color name="colorOnError">#FFFFFF</color>
+    <color name="colorWarning">#FF9800</color>
+    <color name="colorSuccess">#4CAF50</color>
+    <color name="colorInfo">#2196F3</color>
+    <color name="colorDivider">#E0E0E0</color>
+    <color name="colorCardBackground">#FFFFFF</color>
+    <color name="colorTextPrimary">#212121</color>
+    <color name="colorTextSecondary">#757575</color>
+    <color name="colorTextHint">#BDBDBD</color>
+    <color name="colorProfit">#4CAF50</color>
+    <color name="colorLoss">#F44336</color>
+    <color name="colorNeutral">#9E9E9E</color>
+    
+    <!-- Basic Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kasir Kas Kecil</string>
+    
+    <!-- Navigation -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    
+    <!-- Login -->
+    <string name="login_title">Login</string>
+    <string name="login_username_hint">Username</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_button">LOGIN</string>
+    <string name="login_error_empty_username">Username tidak boleh kosong</string>
+    <string name="login_error_empty_password">Password tidak boleh kosong</string>
+    <string name="login_error_invalid_credentials">Username atau password salah</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard_welcome">Selamat Datang di</string>
+    <string name="dashboard_subtitle">Sistem Point of Sale yang mudah dan efisien</string>
+    <string name="dashboard_total_revenue">Total Pendapatan</string>
+    <string name="dashboard_today_sales">Penjualan Hari Ini</string>
+    <string name="dashboard_total_products">Total Produk</string>
+    <string name="dashboard_low_stock">Stok Menipis</string>
+    <string name="dashboard_pending_transactions">Transaksi Pending</string>
+    <string name="dashboard_total_expenses">Total Pengeluaran</string>
+    <string name="dashboard_profit_analysis">Analisis Keuntungan</string>
+    <string name="dashboard_profit_margin">Margin Keuntungan</string>
+    <string name="dashboard_quick_actions">Aksi Cepat</string>
+    <string name="dashboard_new_transaction">Transaksi Baru</string>
+    <string name="dashboard_add_product">Tambah Produk</string>
+    
+    <!-- Menu Items -->
+    <string name="menu_dashboard">Dashboard</string>
+    <string name="menu_products">Produk</string>
+    <string name="menu_transaction">Transaksi</string>
+    <string name="menu_history">Riwayat</string>
+    <string name="menu_expense">Pengeluaran</string>
+    <string name="menu_report">Laporan</string>
+    <string name="menu_settings">Pengaturan</string>
+    <string name="menu_users">Manajemen User</string>
+    <string name="menu_logout">Logout</string>
+    
+    <!-- Common -->
+    <string name="common_loading">Memuat...</string>
+    <string name="common_error">Terjadi kesalahan</string>
+    <string name="common_success">Berhasil</string>
+    <string name="common_cancel">Batal</string>
+    <string name="common_save">Simpan</string>
+    <string name="common_delete">Hapus</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_add">Tambah</string>
+    <string name="common_search">Cari</string>
+    <string name="common_filter">Filter</string>
+    <string name="common_sort">Urutkan</string>
+    <string name="common_refresh">Segarkan</string>
+    <string name="common_export">Ekspor</string>
+    <string name="common_import">Impor</string>
+    <string name="common_backup">Backup</string>
+    <string name="common_restore">Restore</string>
+    
+    <!-- Product -->
+    <string name="product_title">Manajemen Produk</string>
+    <string name="product_add">Tambah Produk</string>
+    <string name="product_edit">Edit Produk</string>
+    <string name="product_name">Nama Produk</string>
+    <string name="product_barcode">Barcode</string>
+    <string name="product_category">Kategori</string>
+    <string name="product_price">Harga</string>
+    <string name="product_cost_price">Harga Modal</string>
+    <string name="product_stock">Stok</string>
+    <string name="product_min_stock">Stok Minimum</string>
+    <string name="product_unit">Satuan</string>
+    <string name="product_image">Gambar Produk</string>
+    <string name="product_active">Aktif</string>
+    <string name="product_inactive">Tidak Aktif</string>
+    <string name="product_low_stock_warning">Stok menipis</string>
+    <string name="product_out_of_stock">Stok habis</string>
+    
+    <!-- Transaction -->
+    <string name="transaction_title">Transaksi POS</string>
+    <string name="transaction_new">Transaksi Baru</string>
+    <string name="transaction_number">Nomor Transaksi</string>
+    <string name="transaction_customer">Customer</string>
+    <string name="transaction_subtotal">Subtotal</string>
+    <string name="transaction_tax">Pajak</string>
+    <string name="transaction_discount">Diskon</string>
+    <string name="transaction_total">Total</string>
+    <string name="transaction_payment_method">Metode Pembayaran</string>
+    <string name="transaction_cash">Tunai</string>
+    <string name="transaction_card">Kartu</string>
+    <string name="transaction_transfer">Transfer</string>
+    <string name="transaction_cash_received">Tunai Diterima</string>
+    <string name="transaction_change">Kembalian</string>
+    <string name="transaction_complete">Selesai</string>
+    <string name="transaction_cancel">Batal</string>
+    <string name="transaction_print">Cetak Struk</string>
+    
+    <!-- History -->
+    <string name="history_title">Riwayat Transaksi</string>
+    <string name="history_date">Tanggal</string>
+    <string name="history_time">Waktu</string>
+    <string name="history_cashier">Kasir</string>
+    <string name="history_status">Status</string>
+    <string name="history_pending">Pending</string>
+    <string name="history_completed">Selesai</string>
+    <string name="history_cancelled">Dibatalkan</string>
+    <string name="history_view_details">Lihat Detail</string>
+    
+    <!-- Expense -->
+    <string name="expense_title">Manajemen Pengeluaran</string>
+    <string name="expense_add">Tambah Pengeluaran</string>
+    <string name="expense_edit">Edit Pengeluaran</string>
+    <string name="expense_title_label">Judul</string>
+    <string name="expense_description">Deskripsi</string>
+    <string name="expense_amount">Jumlah</string>
+    <string name="expense_category">Kategori</string>
+    <string name="expense_date">Tanggal</string>
+    <string name="expense_receipt">Bukti Pengeluaran</string>
+    <string name="expense_operational">Operasional</string>
+    <string name="expense_utilities">Utilitas</string>
+    <string name="expense_salary">Gaji</string>
+    <string name="expense_other">Lainnya</string>
+    
+    <!-- Report -->
+    <string name="report_title">Laporan dan Analisis</string>
+    <string name="report_sales">Laporan Penjualan</string>
+    <string name="report_expense">Laporan Pengeluaran</string>
+    <string name="report_profit">Laporan Keuntungan</string>
+    <string name="report_inventory">Laporan Inventori</string>
+    <string name="report_date_range">Rentang Tanggal</string>
+    <string name="report_today">Hari Ini</string>
+    <string name="report_week">Minggu Ini</string>
+    <string name="report_month">Bulan Ini</string>
+    <string name="report_year">Tahun Ini</string>
+    <string name="report_custom">Kustom</string>
+    <string name="report_export_pdf">Ekspor PDF</string>
+    <string name="report_export_excel">Ekspor Excel</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Pengaturan Aplikasi</string>
+    <string name="settings_printer">Pengaturan Printer</string>
+    <string name="settings_backup">Backup &amp; Restore</string>
+    <string name="settings_company">Informasi Perusahaan</string>
+    <string name="settings_tax">Pengaturan Pajak</string>
+    <string name="settings_currency">Mata Uang</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_about">Tentang Aplikasi</string>
+    
+    <!-- Printer -->
+    <string name="printer_title">Pengaturan Printer</string>
+    <string name="printer_connect">Hubungkan Printer</string>
+    <string name="printer_disconnect">Putuskan Printer</string>
+    <string name="printer_test">Test Printer</string>
+    <string name="printer_connected">Printer Terhubung</string>
+    <string name="printer_disconnected">Printer Tidak Terhubung</string>
+    <string name="printer_error">Gagal menghubungkan printer</string>
+    
+    <!-- Messages -->
+    <string name="msg_save_success">Data berhasil disimpan</string>
+    <string name="msg_delete_success">Data berhasil dihapus</string>
+    <string name="msg_update_success">Data berhasil diperbarui</string>
+    <string name="msg_delete_confirm">Apakah Anda yakin ingin menghapus data ini?</string>
+    <string name="msg_logout_confirm">Apakah Anda yakin ingin keluar?</string>
+    <string name="msg_no_data">Tidak ada data</string>
+    <string name="msg_network_error">Kesalahan jaringan</string>
+    <string name="msg_permission_denied">Izin ditolak</string>
+    
+    <!-- Footer -->
+    <string name="footer_copyright">© 2024 Kasir Kas Kecil. All rights reserved.</string>
+</resources>
