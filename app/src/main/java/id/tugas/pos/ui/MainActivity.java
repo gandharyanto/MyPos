@@ -108,17 +108,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 loadFragment(new HistoryFragment());
                 getSupportActionBar().setTitle("Riwayat");
                 return true;
-            } else if (itemId == R.id.nav_expense) {
-                loadFragment(new ExpenseFragment());
-                getSupportActionBar().setTitle("Pengeluaran");
-                return true;
             } else if (itemId == R.id.nav_report) {
                 loadFragment(new ReportFragment());
                 getSupportActionBar().setTitle("Laporan");
-                return true;
-            } else if (itemId == R.id.nav_settings) {
-                loadFragment(new SettingsFragment());
-                getSupportActionBar().setTitle("Pengaturan");
                 return true;
             }
             return false;

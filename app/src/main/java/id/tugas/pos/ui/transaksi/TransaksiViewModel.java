@@ -186,28 +186,7 @@ public class TransaksiViewModel extends AndroidViewModel {
     }
 
     private void printReceipt(Transaction transaction, List<TransactionItem> items) {
-        // Generate receipt content
-        StringBuilder receipt = new StringBuilder();
-        receipt.append("=== KASIR KAS KECIL ===\n");
-        receipt.append("No. Transaksi: ").append(transaction.getId()).append("\n");
-        receipt.append("Tanggal: ").append(transaction.getFormattedDate()).append("\n");
-        receipt.append("Kasir: ").append(transaction.getCashierName()).append("\n");
-        receipt.append("========================\n");
-        
-        for (TransactionItem item : items) {
-            receipt.append(item.getName()).append("\n");
-            receipt.append("  ").append(item.getQuantity()).append(" x ")
-                  .append(CurrencyUtils.formatCurrency(item.getPrice()))
-                  .append(" = ").append(CurrencyUtils.formatCurrency(item.getSubtotal())).append("\n");
-        }
-        
-        receipt.append("========================\n");
-        receipt.append("TOTAL: ").append(CurrencyUtils.formatCurrency(transaction.getTotalAmount())).append("\n");
-        receipt.append("Pembayaran: ").append(transaction.getPaymentMethod()).append("\n");
-        receipt.append("========================\n");
-        receipt.append("Terima kasih atas kunjungan Anda!\n");
-        
         // Print using PrinterUtils
-        PrinterUtils.printReceipt(getApplication(), receipt.toString());
+        PrinterUtils.printReceipt(getApplication(), transaction, items, null);
     }
 } 

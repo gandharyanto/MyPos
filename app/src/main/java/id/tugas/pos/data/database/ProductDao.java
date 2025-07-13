@@ -62,4 +62,17 @@ public interface ProductDao {
     
     @Query("SELECT * FROM products WHERE isActive = 1")
     List<Product> getAllActiveProductsSync();
+    
+    // Additional methods for repository compatibility
+    @Query("SELECT * FROM products ORDER BY name ASC")
+    LiveData<List<Product>> getAllProducts();
+    
+    @Query("UPDATE products SET stock = :newStock WHERE id = :productId")
+    void updateStock(int productId, int newStock);
+    
+    @Query("SELECT COUNT(*) FROM products")
+    LiveData<Integer> getTotalCount();
+    
+    @Query("SELECT SUM(price * stock) FROM products WHERE isActive = 1")
+    LiveData<Double> getTotalValue();
 } 

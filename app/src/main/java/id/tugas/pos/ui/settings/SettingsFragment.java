@@ -23,7 +23,7 @@ public class SettingsFragment extends Fragment {
         TextView tvDescription = view.findViewById(R.id.tvDescription);
         
         tvTitle.setText("Pengaturan Aplikasi");
-        tvDescription.setText("Fitur untuk mengatur printer thermal, backup data, dan konfigurasi aplikasi akan diimplementasikan di sini.");
+        tvDescription.setText("Fitur untuk mengatur konfigurasi aplikasi akan diimplementasikan di sini.");
         
         return view;
     }

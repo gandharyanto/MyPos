@@ -42,6 +42,20 @@ public class Product {
         this.isActive = true;
     }
 
+    // Additional constructors for compatibility
+    public Product(String name, String barcode, double price, int stock, String category) {
+        this.name = name;
+        this.barcode = barcode;
+        this.category = category;
+        this.price = price;
+        this.costPrice = price * 0.7; // Default cost price
+        this.stock = stock;
+        this.unit = "pcs";
+        this.createdAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
+        this.isActive = true;
+    }
+
     // Getters and Setters
     public int getId() {
         return id;
@@ -145,6 +159,23 @@ public class Product {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    // Alias methods for compatibility
+    public String getCode() {
+        return barcode;
+    }
+
+    public void setCode(String code) {
+        this.barcode = code;
+    }
+
+    public String getDescription() {
+        return unit; // Using unit as description for now
+    }
+
+    public void setDescription(String description) {
+        this.unit = description;
     }
 
     public boolean isLowStock() {

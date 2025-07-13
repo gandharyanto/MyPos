@@ -149,10 +149,9 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
             return;
         }
 
-        double totalAmount = 0;
-        for (TransactionItem item : cartItems) {
-            totalAmount += item.getSubtotal();
-        }
+        final double totalAmount = cartItems.stream()
+                .mapToDouble(TransactionItem::getSubtotal)
+                .sum();
 
         new AlertDialog.Builder(requireContext())
                 .setTitle("Konfirmasi Transaksi")

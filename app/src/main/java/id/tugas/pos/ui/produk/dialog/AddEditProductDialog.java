@@ -138,23 +138,27 @@ public class AddEditProductDialog extends DialogFragment {
             if (productToEdit != null) {
                 // Update existing product
                 product = new Product(
-                    productToEdit.getId(),
                     name,
                     code,
-                    price,
-                    stock,
                     category,
-                    productToEdit.getCreatedAt(),
-                    System.currentTimeMillis()
+                    price,
+                    price * 0.7, // Default cost price
+                    stock,
+                    "pcs" // Default unit
                 );
+                product.setId(productToEdit.getId());
+                product.setCreatedAt(productToEdit.getCreatedAt());
+                product.setUpdatedAt(System.currentTimeMillis());
             } else {
                 // Create new product
                 product = new Product(
                     name,
                     code,
+                    category,
                     price,
+                    price * 0.7, // Default cost price
                     stock,
-                    category
+                    "pcs" // Default unit
                 );
             }
 

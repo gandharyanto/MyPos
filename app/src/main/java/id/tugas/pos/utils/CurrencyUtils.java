@@ -1,62 +1,55 @@
 package id.tugas.pos.utils;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
 public class CurrencyUtils {
     
-    private static final DecimalFormat currencyFormatter = new DecimalFormat("#,##0");
-    private static final NumberFormat indonesianFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+    private static final Locale INDONESIA = new Locale("id", "ID");
+    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(INDONESIA);
+    private static final NumberFormat PERCENTAGE_FORMAT = NumberFormat.getPercentInstance(INDONESIA);
     
     public static String formatCurrency(double amount) {
-        return "Rp " + currencyFormatter.format(amount);
+        return CURRENCY_FORMAT.format(amount);
     }
     
-    public static String formatCurrencyWithDecimal(double amount) {
-        return indonesianFormat.format(amount);
+    public static String formatCurrency(long amount) {
+        return CURRENCY_FORMAT.format(amount);
+    }
+    
+    public static String formatPercentage(double percentage) {
+        return PERCENTAGE_FORMAT.format(percentage / 100.0);
     }
     
     public static String formatNumber(double number) {
-        return currencyFormatter.format(number);
+        return NumberFormat.getNumberInstance(INDONESIA).format(number);
     }
     
-    public static String formatNumber(int number) {
-        return currencyFormatter.format(number);
+    public static String formatNumber(long number) {
+        return NumberFormat.getNumberInstance(INDONESIA).format(number);
     }
     
     public static double parseCurrency(String currencyString) {
         try {
-            // Remove "Rp " prefix and any non-digit characters except decimal point
-            String cleanString = currencyString.replace("Rp ", "").replace(",", "");
+            // Remove currency symbol and non-numeric characters except decimal point
+            String cleanString = currencyString.replaceAll("[^\\d.,]", "");
+            // Replace comma with dot for decimal
+            cleanString = cleanString.replace(",", ".");
             return Double.parseDouble(cleanString);
         } catch (NumberFormatException e) {
             return 0.0;
         }
     }
     
-    public static boolean isValidCurrency(String currencyString) {
-        try {
-            parseCurrency(currencyString);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-    
-    public static String formatPercentage(double percentage) {
-        return String.format("%.1f%%", percentage);
-    }
-    
-    public static String formatQuantity(int quantity) {
-        return String.valueOf(quantity);
-    }
-    
-    public static String formatQuantity(double quantity) {
-        if (quantity == (int) quantity) {
-            return String.valueOf((int) quantity);
+    public static String formatCompactCurrency(double amount) {
+        if (amount >= 1_000_000_000) {
+            return String.format("Rp%.1fM", amount / 1_000_000_000);
+        } else if (amount >= 1_000_000) {
+            return String.format("Rp%.1fJt", amount / 1_000_000);
+        } else if (amount >= 1_000) {
+            return String.format("Rp%.1fRb", amount / 1_000);
         } else {
-            return String.format("%.2f", quantity);
+            return formatCurrency(amount);
         }
     }
 } 

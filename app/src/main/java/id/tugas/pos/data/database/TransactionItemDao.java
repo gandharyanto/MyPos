@@ -48,6 +48,10 @@ public interface TransactionItemDao {
     @Query("SELECT * FROM transaction_items WHERE transactionId = :transactionId")
     List<TransactionItem> getTransactionItemsByTransactionIdSync(int transactionId);
     
+    // Additional method for repository compatibility
+    @Query("SELECT * FROM transaction_items WHERE transactionId = :transactionId")
+    List<TransactionItem> getItemsByTransactionId(long transactionId);
+    
     @Query("DELETE FROM transaction_items WHERE transactionId = :transactionId")
     void deleteTransactionItemsByTransactionId(int transactionId);
     

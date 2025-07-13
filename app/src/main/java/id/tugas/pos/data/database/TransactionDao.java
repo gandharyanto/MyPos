@@ -68,4 +68,17 @@ public interface TransactionDao {
     
     @Query("SELECT * FROM transactions ORDER BY createdAt DESC LIMIT :limit")
     LiveData<List<Transaction>> getRecentTransactions(int limit);
+    
+    // Additional methods for repository compatibility
+    @Query("SELECT * FROM transactions ORDER BY createdAt DESC LIMIT 50")
+    LiveData<List<Transaction>> getRecentTransactions();
+    
+    @Query("SELECT * FROM transactions WHERE DATE(createdAt/1000, 'unixepoch') = :date ORDER BY createdAt DESC")
+    LiveData<List<Transaction>> getTransactionsByDate(String date);
+    
+    @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND DATE(createdAt/1000, 'unixepoch') = DATE('now')")
+    LiveData<Double> getTodayRevenue();
+    
+    @Query("SELECT COUNT(*) FROM transactions WHERE status = 'COMPLETED' AND DATE(createdAt/1000, 'unixepoch') = DATE('now')")
+    LiveData<Integer> getTodayTransactionCount();
 } 

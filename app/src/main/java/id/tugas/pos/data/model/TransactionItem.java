@@ -35,6 +35,17 @@ public class TransactionItem {
         calculateTotals();
     }
 
+    // Additional constructor for compatibility
+    public TransactionItem(int transactionId, String productName, String productCode, double price, int quantity, double discount) {
+        this.transactionId = transactionId;
+        this.productId = 0; // Will be set later
+        this.productName = productName;
+        this.price = price;
+        this.quantity = quantity;
+        this.discount = discount;
+        calculateTotals();
+    }
+
     // Getters and Setters
     public int getId() {
         return id;
@@ -126,5 +137,10 @@ public class TransactionItem {
             this.quantity--;
             calculateTotals();
         }
+    }
+
+    // Alias method for compatibility
+    public String getName() {
+        return productName;
     }
 } 

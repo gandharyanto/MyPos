@@ -4,50 +4,50 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="@color/colorPrimary">
+    android:background="@color/colorPrimary"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center">
+        android:padding="24dp">
 
         <!-- Logo and Title -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
             android:layout_marginTop="48dp"
-            android:layout_marginBottom="48dp">
+            android:layout_marginBottom="48dp"
+            android:gravity="center"
+            android:orientation="vertical">
 
             <ImageView
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:src="@drawable/ic_pos_logo"
-                android:background="@drawable/circle_background"
-                android:padding="16dp"
                 android:layout_marginBottom="16dp"
-                android:contentDescription="POS Logo" />
+                android:background="@drawable/circle_background"
+                android:contentDescription="POS Logo"
+                android:padding="16dp"
+                android:src="@drawable/ic_pos_logo" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:text="KASIR KAS KECIL"
-                android:textSize="28sp"
-                android:textStyle="bold"
                 android:textColor="@android:color/white"
-                android:layout_marginBottom="8dp" />
+                android:textSize="28sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:alpha="0.8"
                 android:text="Point of Sale System"
-                android:textSize="16sp"
                 android:textColor="@android:color/white"
-                android:alpha="0.8" />
+                android:textSize="16sp" />
 
         </LinearLayout>
 
@@ -56,9 +56,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
+            app:cardBackgroundColor="@android:color/white"
             app:cardCornerRadius="16dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="@android:color/white">
+            app:cardElevation="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -69,22 +69,22 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Login"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/colorPrimary"
                     android:layout_gravity="center"
-                    android:layout_marginBottom="32dp" />
+                    android:layout_marginBottom="32dp"
+                    android:text="Login"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
                 <!-- Username Field -->
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:hint="Username"
                     app:startIconDrawable="@drawable/ic_person"
-                    app:startIconTint="@color/colorPrimary"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconTint="@color/colorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etUsername"
@@ -92,21 +92,22 @@
                         android:layout_height="wrap_content"
                         android:inputType="text"
                         android:maxLines="1"
-                        android:text="admin" />
+                        android:text="admin"
+                        android:textColor="@color/black" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Password Field -->
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
                     android:hint="Password"
-                    app:startIconDrawable="@drawable/ic_lock"
-                    app:startIconTint="@color/colorPrimary"
                     app:endIconMode="password_toggle"
                     app:endIconTint="@color/colorPrimary"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconDrawable="@drawable/ic_lock"
+                    app:startIconTint="@color/colorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPassword"
@@ -114,7 +115,8 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:maxLines="1"
-                        android:text="admin123" />
+                        android:text="admin123"
+                        android:textColor="@color/black" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -123,12 +125,12 @@
                     android:id="@+id/btnLogin"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
+                    android:layout_marginBottom="16dp"
+                    android:backgroundTint="@color/colorPrimary"
                     android:text="LOGIN"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    app:cornerRadius="28dp"
-                    android:backgroundTint="@color/colorPrimary"
-                    android:layout_marginBottom="16dp" />
+                    app:cornerRadius="28dp" />
 
                 <!-- Loading Progress -->
                 <ProgressBar
@@ -143,43 +145,43 @@
                     android:id="@+id/tvErrorMessage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
                     android:textColor="@android:color/holo_red_dark"
                     android:textSize="14sp"
-                    android:gravity="center"
-                    android:visibility="gone"
-                    android:layout_marginTop="8dp" />
+                    android:visibility="gone" />
 
                 <!-- Demo Credentials -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:layout_marginTop="24dp"
                     android:background="@drawable/demo_credentials_background"
+                    android:orientation="vertical"
                     android:padding="16dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
                         android:text="Demo Credentials:"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
                         android:textColor="@color/colorPrimary"
-                        android:layout_marginBottom="8dp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Admin: admin / admin123"
-                        android:textSize="12sp"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="12sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="User: user / user123"
-                        android:textSize="12sp"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -191,11 +193,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="© 2024 Kasir Kas Kecil. All rights reserved."
-            android:textSize="12sp"
-            android:textColor="@android:color/white"
+            android:layout_marginTop="32dp"
             android:alpha="0.6"
-            android:layout_marginTop="32dp" />
+            android:text="© 2024 Kasir Kas Kecil. All rights reserved."
+            android:textColor="@android:color/white"
+            android:textSize="12sp" />
 
     </LinearLayout>
 

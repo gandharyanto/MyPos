@@ -8,7 +8,6 @@ import android.util.Log;
 import com.dantsu.escposprinter.EscPosPrinter;
 import com.dantsu.escposprinter.connection.DeviceConnection;
 import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections;
-import com.dantsu.escposprinter.text.PrinterTextParserImg;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

@@ -48,6 +48,27 @@ public class Transaction {
         this.change = 0;
     }
 
+    // Additional constructor for compatibility
+    public Transaction(double total, String paymentMethod) {
+        this.transactionNumber = generateTransactionNumber();
+        this.userId = 1; // Default user ID
+        this.customerName = "";
+        this.subtotal = total;
+        this.total = total;
+        this.paymentMethod = paymentMethod;
+        this.createdAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
+        this.status = "PENDING";
+        this.tax = 0;
+        this.discount = 0;
+        this.cashReceived = 0;
+        this.change = 0;
+    }
+
+    private String generateTransactionNumber() {
+        return "TXN" + System.currentTimeMillis();
+    }
+
     // Getters and Setters
     public int getId() {
         return id;
@@ -191,5 +212,33 @@ public class Transaction {
 
     public boolean isCancelled() {
         return "CANCELLED".equals(status);
+    }
+
+    // Alias methods for compatibility
+    public double getTotalAmount() {
+        return total;
+    }
+
+    public void setTotalAmount(double totalAmount) {
+        this.total = totalAmount;
+    }
+
+    public double getAmountPaid() {
+        return cashReceived;
+    }
+
+    public void setAmountPaid(double amountPaid) {
+        this.cashReceived = amountPaid;
+        calculateChange();
+    }
+
+    // Additional utility methods
+    public String getFormattedDate() {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date(createdAt));
+    }
+
+    public String getCashierName() {
+        return "User ID: " + userId; // For now, just return user ID
     }
 } 

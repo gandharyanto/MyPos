@@ -23,7 +23,7 @@ public class ExpenseFragment extends Fragment {
         TextView tvDescription = view.findViewById(R.id.tvDescription);
         
         tvTitle.setText("Manajemen Pengeluaran");
-        tvDescription.setText("Fitur untuk mengelola pengeluaran bisnis dan kategori pengeluaran akan diimplementasikan di sini.");
+        tvDescription.setText("Fitur untuk mengelola pengeluaran toko akan diimplementasikan di sini.");
         
         return view;
     }

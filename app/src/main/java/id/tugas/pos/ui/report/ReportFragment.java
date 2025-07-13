@@ -22,8 +22,8 @@ public class ReportFragment extends Fragment {
         TextView tvTitle = view.findViewById(R.id.tvTitle);
         TextView tvDescription = view.findViewById(R.id.tvDescription);
         
-        tvTitle.setText("Laporan dan Analisis");
-        tvDescription.setText("Fitur untuk melihat laporan penjualan, analisis bisnis, dan ekspor data akan diimplementasikan di sini.");
+        tvTitle.setText("Laporan & Analisis");
+        tvDescription.setText("Fitur untuk melihat laporan penjualan dan analisis bisnis akan diimplementasikan di sini.");
         
         return view;
     }

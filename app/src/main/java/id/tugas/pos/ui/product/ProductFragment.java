@@ -23,7 +23,7 @@ public class ProductFragment extends Fragment {
         TextView tvDescription = view.findViewById(R.id.tvDescription);
         
         tvTitle.setText("Manajemen Produk");
-        tvDescription.setText("Fitur untuk mengelola produk, stok, dan kategori produk akan diimplementasikan di sini.");
+        tvDescription.setText("Fitur untuk mengelola produk toko akan diimplementasikan di sini.");
         
         return view;
     }
