@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import id.tugas.pos.R;
+import id.tugas.pos.viewmodel.DashboardViewModel;
 
 public class DashboardFragment extends Fragment {
     
