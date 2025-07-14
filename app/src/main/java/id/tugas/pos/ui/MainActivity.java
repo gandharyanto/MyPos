@@ -1,6 +1,7 @@
 package id.tugas.pos.ui;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -46,8 +47,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Initialize ViewModel
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
         
-        // Check if user is logged in
-        if (!loginViewModel.isLoggedIn()) {
+        // Check if user is logged in (pakai SharedPreferences)
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        int userId = prefs.getInt("userId", -1);
+        if (userId == -1) {
             navigateToLogin();
             return;
         }

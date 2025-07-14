@@ -21,6 +21,9 @@
         <!-- Input text color -->
         <item name="android:textColor">@android:color/black</item>
         <item name="android:editTextColor">@android:color/black</item>
+        <!-- Fix double action bar -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
     
     <!-- Theme without action bar for login screen -->
