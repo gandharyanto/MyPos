@@ -127,7 +127,7 @@ public class ReportFragment extends Fragment {
 
     private void observeSummaryByStore(int storeId) {
         // Total Penjualan
-        transactionViewModel.getAllTransactionsByStore(storeId).observe(getViewLifecycleOwner(), transactions -> {
+        transactionViewModel.getTransactionsByStore(storeId).observe(getViewLifecycleOwner(), transactions -> {
             double totalSales = 0.0;
             int transactionCount = 0;
             if (transactions != null) {

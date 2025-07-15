@@ -189,4 +189,8 @@ public class TransaksiViewModel extends AndroidViewModel {
         // Print using PrinterUtils
         PrinterUtils.printReceipt(getApplication(), transaction, items, null);
     }
+
+    public LiveData<List<Product>> getAllProductsByStore(int storeId) {
+        return productRepository.getAllProductsByStore(storeId);
+    }
 } 

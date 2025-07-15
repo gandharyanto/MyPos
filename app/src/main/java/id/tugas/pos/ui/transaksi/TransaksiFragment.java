@@ -152,9 +152,6 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
                                 allProducts = products;
                                 productAdapter.submitList(products);
                             });
-                            viewModel.getAllTransactionsByStore(storeId).observe(getViewLifecycleOwner(), transactions -> {
-                                // update transaksi list jika ada
-                            });
                         }
                     });
                 } else {
@@ -163,9 +160,6 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
                         viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
                             allProducts = products;
                             productAdapter.submitList(products);
-                        });
-                        viewModel.getAllTransactionsByStore(storeId).observe(getViewLifecycleOwner(), transactions -> {
-                            // update transaksi list jika ada
                         });
                     }
                 }
