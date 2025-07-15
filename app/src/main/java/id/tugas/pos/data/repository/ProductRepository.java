@@ -85,6 +85,10 @@ public class ProductRepository {
         return productDao.getTotalValue();
     }
     
+    public LiveData<List<Product>> getAllProductsByStore(int storeId) {
+        return productDao.getAllActiveProductsByStore(storeId);
+    }
+    
     // Additional methods for ViewModel compatibility
     public LiveData<Integer> getActiveProductCount() {
         return productDao.getActiveProductCount();

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingEnd="8dp">
+
+    <TextView
+        android:id="@+id/labelStore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Toko:"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginEnd="4dp" />
+
+    <Spinner
+        android:id="@+id/spinnerStore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown" />
+
+</LinearLayout> 

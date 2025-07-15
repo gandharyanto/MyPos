@@ -24,10 +24,10 @@ import id.tugas.pos.R;
 import id.tugas.pos.ui.dashboard.DashboardFragment;
 import id.tugas.pos.ui.expense.ExpenseFragment;
 import id.tugas.pos.ui.history.HistoryFragment;
-import id.tugas.pos.ui.product.ProductFragment;
+import id.tugas.pos.ui.produk.ProdukFragment;
 import id.tugas.pos.ui.report.ReportFragment;
 import id.tugas.pos.ui.settings.SettingsFragment;
-import id.tugas.pos.ui.transaction.TransactionFragment;
+import id.tugas.pos.ui.transaksi.TransaksiFragment;
 import id.tugas.pos.viewmodel.LoginViewModel;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -100,11 +100,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 getSupportActionBar().setTitle("Dashboard");
                 return true;
             } else if (itemId == R.id.nav_products) {
-                loadFragment(new ProductFragment());
+                loadFragment(new ProdukFragment());
                 getSupportActionBar().setTitle("Produk");
                 return true;
             } else if (itemId == R.id.nav_transaction) {
-                loadFragment(new TransactionFragment());
+                loadFragment(new TransaksiFragment());
                 getSupportActionBar().setTitle("Transaksi");
                 return true;
             } else if (itemId == R.id.nav_history) {
@@ -162,10 +162,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             loadFragment(new DashboardFragment());
             getSupportActionBar().setTitle("Dashboard");
         } else if (itemId == R.id.nav_products) {
-            loadFragment(new ProductFragment());
+            loadFragment(new ProdukFragment());
             getSupportActionBar().setTitle("Produk");
         } else if (itemId == R.id.nav_transaction) {
-            loadFragment(new TransactionFragment());
+            loadFragment(new TransaksiFragment());
             getSupportActionBar().setTitle("Transaksi");
         } else if (itemId == R.id.nav_history) {
             loadFragment(new HistoryFragment());

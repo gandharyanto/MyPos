@@ -26,6 +26,15 @@ import java.util.Locale;
 import id.tugas.pos.R;
 import id.tugas.pos.data.model.Transaction;
 import id.tugas.pos.viewmodel.TransactionViewModel;
+import id.tugas.pos.viewmodel.StoreViewModel;
+import id.tugas.pos.viewmodel.LoginViewModel;
+import id.tugas.pos.data.model.Store;
+import id.tugas.pos.data.model.User;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
+import android.content.Context;
+import androidx.lifecycle.Observer;
 
 public class HistoryFragment extends Fragment implements TransactionHistoryAdapter.OnTransactionClickListener {
     
@@ -40,6 +49,88 @@ public class HistoryFragment extends Fragment implements TransactionHistoryAdapt
     private String selectedDate = "";
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     
+    private StoreViewModel storeViewModel;
+    private LoginViewModel loginViewModel;
+    private int selectedStoreId = -1;
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main_menu, menu);
+        // Tampilkan Spinner hanya untuk admin
+        if (isAdmin()) {
+            MenuItem item = menu.findItem(R.id.action_store_spinner);
+            View actionView = item.getActionView();
+            if (actionView != null) {
+                Spinner spinner = actionView.findViewById(R.id.spinnerStore);
+                TextView label = actionView.findViewById(R.id.labelStore);
+                setupStoreSpinner(spinner);
+            }
+        } else {
+            // Sembunyikan Spinner jika bukan admin
+            MenuItem item = menu.findItem(R.id.action_store_spinner);
+            if (item != null) item.setVisible(false);
+        }
+    }
+
+    private void setupStoreSpinner(Spinner spinner) {
+        storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
+            if (stores == null) return;
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            for (Store store : stores) {
+                adapter.add(store.getName());
+            }
+            spinner.setAdapter(adapter);
+            // Set selected store if already chosen
+            Integer currentStoreId = storeViewModel.getSelectedStoreId().getValue();
+            if (currentStoreId != null && currentStoreId >= 0) {
+                int pos = 0;
+                for (int i = 0; i < stores.size(); i++) {
+                    if (stores.get(i).getId() == currentStoreId) {
+                        pos = i;
+                        break;
+                    }
+                }
+                spinner.setSelection(pos);
+            }
+            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    int storeId = stores.get(position).getId();
+                    storeViewModel.setSelectedStoreId(storeId);
+                    selectedStoreId = storeId;
+                    // Update observer transaksi sesuai storeId
+                    observeTransactionsByStore(storeId);
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        });
+    }
+
+    private void observeTransactionsByStore(int storeId) {
+        // Ganti observer transaksi agar hanya menampilkan transaksi storeId terpilih
+        transactionViewModel.getTransactionsByStore(storeId).observe(getViewLifecycleOwner(), transactions -> {
+            if (transactions != null) {
+                adapter.setTransactions(transactions);
+                updateEmptyState(transactions.isEmpty());
+                updateSummary(transactions);
+            }
+        });
+    }
+
+    private boolean isAdmin() {
+        User user = loginViewModel.getCurrentUser().getValue();
+        return user != null && user.isAdmin();
+    }
+    
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -52,6 +143,8 @@ public class HistoryFragment extends Fragment implements TransactionHistoryAdapt
         
         // Initialize ViewModel
         transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
+        storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
+        loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
         
         // Initialize views
         initViews(view);

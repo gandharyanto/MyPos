@@ -89,6 +89,10 @@ public class TransactionRepository {
         return transactionDao.getRevenueByDateRange(startDate, endDate);
     }
     
+    public LiveData<List<Transaction>> getAllTransactionsByStore(int storeId) {
+        return transactionDao.getAllTransactionsByStore(storeId);
+    }
+    
     // Additional methods for ViewModel compatibility
     public LiveData<Integer> getPendingTransactionCount() {
         return transactionDao.getPendingTransactionCount();

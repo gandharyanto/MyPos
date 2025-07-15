@@ -110,6 +110,18 @@ public class ExpenseRepository {
     public LiveData<List<Expense>> getExpensesAboveAmount(double minAmount) {
         return expenseDao.getExpensesAboveAmount(minAmount);
     }
+
+    public LiveData<List<Expense>> getAllExpensesByStore(int storeId) {
+        return expenseDao.getAllExpensesByStore(storeId);
+    }
+
+    public LiveData<Double> getTotalExpensesByStore(int storeId) {
+        return expenseDao.getTotalExpensesByStore(storeId);
+    }
+
+    public LiveData<Integer> getExpenseCountByStore(int storeId) {
+        return expenseDao.getExpenseCountByStore(storeId);
+    }
     
     // AsyncTask classes
     private static class InsertExpenseAsyncTask extends AsyncTask<Expense, Void, Void> {

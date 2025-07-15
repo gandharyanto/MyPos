@@ -26,4 +26,10 @@
         android:icon="@drawable/ic_info"
         app:showAsAction="never" />
         
+    <item
+        android:id="@+id/action_store_spinner"
+        android:title="Pilih Toko"
+        app:showAsAction="always"
+        app:actionLayout="@layout/toolbar_store_spinner" />
+        
 </menu> 

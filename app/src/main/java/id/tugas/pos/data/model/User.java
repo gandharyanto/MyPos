@@ -15,6 +15,7 @@ public class User {
     private boolean isActive;
     private long createdAt;
     private long lastLogin;
+    private Integer storeId; // null untuk admin, id toko untuk user
 
     public User() {
         this.createdAt = System.currentTimeMillis();
@@ -94,6 +95,9 @@ public class User {
     public void setLastLogin(long lastLogin) {
         this.lastLogin = lastLogin;
     }
+
+    public Integer getStoreId() { return storeId; }
+    public void setStoreId(Integer storeId) { this.storeId = storeId; }
 
     public boolean isAdmin() {
         return "ADMIN".equals(role);

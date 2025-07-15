@@ -194,6 +194,10 @@ public class TransactionViewModel extends AndroidViewModel {
     public LiveData<List<Transaction>> getRecentTransactions() {
         return transactionRepository.getRecentTransactions();
     }
+
+    public LiveData<List<Transaction>> getTransactionsByStore(int storeId) {
+        return transactionRepository.getAllTransactionsByStore(storeId);
+    }
     
     @Override
     protected void onCleared() {

@@ -75,4 +75,7 @@ public interface ProductDao {
     
     @Query("SELECT SUM(price * stock) FROM products WHERE isActive = 1")
     LiveData<Double> getTotalValue();
+
+    @Query("SELECT * FROM products WHERE isActive = 1 AND storeId = :storeId ORDER BY name ASC")
+    LiveData<List<Product>> getAllActiveProductsByStore(int storeId);
 } 

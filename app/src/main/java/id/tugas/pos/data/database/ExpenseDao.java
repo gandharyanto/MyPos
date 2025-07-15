@@ -65,4 +65,13 @@ public interface ExpenseDao {
     
     @Query("SELECT * FROM expenses WHERE amount >= :minAmount ORDER BY amount DESC")
     LiveData<List<Expense>> getExpensesAboveAmount(double minAmount);
+    
+    @Query("SELECT * FROM expenses WHERE storeId = :storeId ORDER BY expenseDate DESC")
+    LiveData<List<Expense>> getAllExpensesByStore(int storeId);
+    
+    @Query("SELECT SUM(amount) FROM expenses WHERE storeId = :storeId")
+    LiveData<Double> getTotalExpensesByStore(int storeId);
+
+    @Query("SELECT COUNT(*) FROM expenses WHERE storeId = :storeId")
+    LiveData<Integer> getExpenseCountByStore(int storeId);
 } 

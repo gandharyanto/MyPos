@@ -81,4 +81,7 @@ public interface TransactionDao {
     
     @Query("SELECT COUNT(*) FROM transactions WHERE status = 'COMPLETED' AND DATE(createdAt/1000, 'unixepoch') = DATE('now')")
     LiveData<Integer> getTodayTransactionCount();
+    
+    @Query("SELECT * FROM transactions WHERE storeId = :storeId ORDER BY createdAt DESC")
+    LiveData<List<Transaction>> getAllTransactionsByStore(int storeId);
 } 

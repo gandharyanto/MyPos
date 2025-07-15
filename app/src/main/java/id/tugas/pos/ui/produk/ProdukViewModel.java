@@ -117,4 +117,8 @@ public class ProdukViewModel extends AndroidViewModel {
             }
         });
     }
+
+    public LiveData<List<Product>> getAllProductsByStore(int storeId) {
+        return repository.getAllProductsByStore(storeId);
+    }
 } 

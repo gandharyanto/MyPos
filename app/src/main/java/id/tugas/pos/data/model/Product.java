@@ -20,6 +20,7 @@ public class Product {
     private boolean isActive;
     private long createdAt;
     private long updatedAt;
+    private int storeId;
 
     public Product() {
         this.createdAt = System.currentTimeMillis();
@@ -160,6 +161,9 @@ public class Product {
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public int getStoreId() { return storeId; }
+    public void setStoreId(int storeId) { this.storeId = storeId; }
 
     // Alias methods for compatibility
     public String getCode() {

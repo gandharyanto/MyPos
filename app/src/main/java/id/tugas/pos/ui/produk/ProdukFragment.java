@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.Toast;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,9 +24,12 @@ import java.util.List;
 
 import id.tugas.pos.R;
 import id.tugas.pos.data.model.Product;
+import id.tugas.pos.data.model.Store;
 import id.tugas.pos.ui.produk.adapter.ProductAdapter;
 import id.tugas.pos.ui.produk.dialog.AddEditProductDialog;
 import id.tugas.pos.utils.CurrencyUtils;
+import id.tugas.pos.viewmodel.LoginViewModel;
+import id.tugas.pos.viewmodel.StoreViewModel;
 
 public class ProdukFragment extends Fragment implements ProductAdapter.OnProductClickListener {
 
@@ -34,6 +39,9 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     private SearchView searchView;
     private FloatingActionButton fabAdd;
     private List<Product> allProducts = new ArrayList<>();
+    private LoginViewModel loginViewModel;
+    private StoreViewModel storeViewModel;
+    private Spinner spinnerStore;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -49,6 +57,9 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         setupRecyclerView();
         setupSearchView();
         setupFab();
+        loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
+        storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
+        setupStoreDropdown();
         observeData();
     }
 
@@ -56,6 +67,7 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         recyclerView = view.findViewById(R.id.recycler_view_products);
         searchView = view.findViewById(R.id.search_view_products);
         fabAdd = view.findViewById(R.id.fab_add_product);
+        spinnerStore = view.findViewById(R.id.spinner_store); // Tambahkan spinner di layout
     }
 
     private void setupViewModel() {
@@ -88,10 +100,54 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         fabAdd.setOnClickListener(v -> showAddProductDialog());
     }
 
+    private void setupStoreDropdown() {
+        loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+            if (user != null && user.isAdmin()) {
+                spinnerStore.setVisibility(View.VISIBLE);
+                storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
+                    ArrayAdapter<Store> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, stores);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerStore.setAdapter(adapter);
+                    spinnerStore.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                            Store selected = stores.get(position);
+                            storeViewModel.setSelectedStoreId(selected.getId());
+                        }
+                        @Override
+                        public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                    });
+                });
+            } else {
+                spinnerStore.setVisibility(View.GONE);
+            }
+        });
+    }
+
     private void observeData() {
-        viewModel.getAllProducts().observe(getViewLifecycleOwner(), products -> {
-            allProducts = products;
-            adapter.submitList(products);
+        loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+            if (user != null) {
+                if (user.isAdmin()) {
+                    // Admin: filter produk sesuai toko yang dipilih
+                    storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
+                        if (storeId != null) {
+                            viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                                allProducts = products;
+                                adapter.submitList(products);
+                            });
+                        }
+                    });
+                } else {
+                    // User: tampilkan produk sesuai toko
+                    Integer storeId = user.getStoreId();
+                    if (storeId != null) {
+                        viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                            allProducts = products;
+                            adapter.submitList(products);
+                        });
+                    }
+                }
+            }
         });
     }
 

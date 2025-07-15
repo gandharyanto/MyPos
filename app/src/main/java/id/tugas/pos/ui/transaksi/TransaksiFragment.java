@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +31,9 @@ import id.tugas.pos.data.model.TransactionItem;
 import id.tugas.pos.ui.transaksi.adapter.CartAdapter;
 import id.tugas.pos.ui.transaksi.adapter.ProductGridAdapter;
 import id.tugas.pos.utils.CurrencyUtils;
+import id.tugas.pos.data.model.Store;
+import id.tugas.pos.viewmodel.LoginViewModel;
+import id.tugas.pos.viewmodel.StoreViewModel;
 
 public class TransaksiFragment extends Fragment implements ProductGridAdapter.OnProductClickListener, CartAdapter.OnCartItemClickListener {
 
@@ -41,6 +46,9 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
     private MaterialButton btnCheckout, btnClearCart;
     private List<Product> allProducts = new ArrayList<>();
     private List<TransactionItem> cartItems = new ArrayList<>();
+    private LoginViewModel loginViewModel;
+    private StoreViewModel storeViewModel;
+    private Spinner spinnerStore;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -56,6 +64,9 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         setupRecyclerViews();
         setupSearchView();
         setupButtons();
+        loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
+        storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
+        setupStoreDropdown();
         observeData();
     }
 
@@ -67,6 +78,7 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         tvTotalItems = view.findViewById(R.id.tv_total_items);
         btnCheckout = view.findViewById(R.id.btn_checkout);
         btnClearCart = view.findViewById(R.id.btn_clear_cart);
+        spinnerStore = view.findViewById(R.id.spinner_store);
     }
 
     private void setupViewModel() {
@@ -106,10 +118,58 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         btnClearCart.setOnClickListener(v -> showClearCartDialog());
     }
 
+    private void setupStoreDropdown() {
+        loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+            if (user != null && user.isAdmin()) {
+                spinnerStore.setVisibility(View.VISIBLE);
+                storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
+                    ArrayAdapter<Store> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, stores);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerStore.setAdapter(adapter);
+                    spinnerStore.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                            Store selected = stores.get(position);
+                            storeViewModel.setSelectedStoreId(selected.getId());
+                        }
+                        @Override
+                        public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                    });
+                });
+            } else {
+                spinnerStore.setVisibility(View.GONE);
+            }
+        });
+    }
+
     private void observeData() {
-        viewModel.getAllProducts().observe(getViewLifecycleOwner(), products -> {
-            allProducts = products;
-            productAdapter.submitList(products);
+        loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+            if (user != null) {
+                if (user.isAdmin()) {
+                    storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
+                        if (storeId != null) {
+                            viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                                allProducts = products;
+                                productAdapter.submitList(products);
+                            });
+                            viewModel.getAllTransactionsByStore(storeId).observe(getViewLifecycleOwner(), transactions -> {
+                                // update transaksi list jika ada
+                            });
+                        }
+                    });
+                } else {
+                    Integer storeId = user.getStoreId();
+                    if (storeId != null) {
+                        viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                            allProducts = products;
+                            productAdapter.submitList(products);
+                        });
+                        viewModel.getAllTransactionsByStore(storeId).observe(getViewLifecycleOwner(), transactions -> {
+                            // update transaksi list jika ada
+                        });
+                    }
+                }
+            }
         });
 
         viewModel.getCartItems().observe(getViewLifecycleOwner(), items -> {

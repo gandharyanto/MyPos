@@ -22,6 +22,7 @@ public class Transaction {
     private String notes;
     private long createdAt;
     private long updatedAt;
+    private int storeId;
 
     public Transaction() {
         this.createdAt = System.currentTimeMillis();
@@ -193,6 +194,9 @@ public class Transaction {
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public int getStoreId() { return storeId; }
+    public void setStoreId(int storeId) { this.storeId = storeId; }
 
     private void calculateTotal() {
         this.total = subtotal + tax - discount;

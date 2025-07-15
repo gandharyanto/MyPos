@@ -18,6 +18,7 @@ public class Expense {
     private long expenseDate;
     private long createdAt;
     private long updatedAt;
+    private int storeId;
 
     public Expense() {
         this.createdAt = System.currentTimeMillis();
@@ -140,4 +141,7 @@ public class Expense {
     public boolean isOther() {
         return "OTHER".equals(category);
     }
+
+    public int getStoreId() { return storeId; }
+    public void setStoreId(int storeId) { this.storeId = storeId; }
 } 
