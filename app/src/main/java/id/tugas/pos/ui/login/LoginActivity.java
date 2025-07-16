@@ -90,7 +90,28 @@ public class LoginActivity extends AppCompatActivity {
         String username = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         
-        loginViewModel.login(username, password);
+        if (username.isEmpty()) {
+            etUsername.setError("Username/Email tidak boleh kosong");
+            return;
+        }
+        
+        if (password.isEmpty()) {
+            etPassword.setError("Password tidak boleh kosong");
+            return;
+        }
+        
+        // Cek apakah input adalah email (untuk admin)
+        if (isValidEmail(username)) {
+            // Login dengan email untuk admin
+            loginViewModel.loginWithEmail(username, password);
+        } else {
+            // Login dengan username untuk user biasa
+            loginViewModel.login(username, password);
+        }
+    }
+    
+    private boolean isValidEmail(String email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
     
     private void navigateToMainActivity() {

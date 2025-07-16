@@ -79,11 +79,58 @@ public class LoginViewModel extends AndroidViewModel {
     }
     
     public void createDefaultAdmin() {
-        User admin = new User("admin", "admin123", "Administrator", "ADMIN");
+        // Admin utama dengan email aidilfitriyoka2812@gmail.com
+        User admin = new User("admin", "aidilfitriyoka2812@gmail.com", "admin123", "Administrator", "ADMIN");
         userRepository.insert(admin);
         
+        // User biasa untuk testing
         User user = new User("user", "user123", "Cashier", "USER");
         userRepository.insert(user);
+    }
+
+    public void createAdminWithStore(String email, String password, String fullName, int storeId) {
+        // Validasi email admin
+        if (!email.equals("aidilfitriyoka2812@gmail.com")) {
+            errorMessage.setValue("Admin hanya bisa didaftarkan melalui email: aidilfitriyoka2812@gmail.com");
+            return;
+        }
+        
+        User admin = new User("admin_" + storeId, email, password, fullName, "ADMIN");
+        admin.setStoreId(storeId); // Set storeId untuk admin
+        userRepository.insert(admin);
+    }
+
+    public void loginWithEmail(String email, String password) {
+        if (email == null || email.trim().isEmpty()) {
+            errorMessage.setValue("Email tidak boleh kosong");
+            return;
+        }
+        
+        if (password == null || password.trim().isEmpty()) {
+            errorMessage.setValue("Password tidak boleh kosong");
+            return;
+        }
+        
+        isLoading.setValue(true);
+        errorMessage.setValue(null);
+        
+        // Login menggunakan email untuk admin
+        LiveData<User> userLiveData = userRepository.loginByEmail(email.trim(), password);
+        userLiveData.observeForever(user -> {
+            if (user != null) {
+                currentUser.setValue(user);
+                // Simpan session ke SharedPreferences
+                SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                prefs.edit().putInt(KEY_USER_ID, user.getId()).apply();
+                // Update last login time
+                userRepository.updateLastLogin(user.getId(), System.currentTimeMillis());
+                isLoading.setValue(false);
+            } else {
+                errorMessage.setValue("Email atau password salah");
+                isLoading.setValue(false);
+            }
+            userLiveData.removeObserver(user1 -> {});
+        });
     }
     
     public LiveData<Boolean> getIsLoading() {

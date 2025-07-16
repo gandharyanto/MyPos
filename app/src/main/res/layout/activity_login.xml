@@ -82,7 +82,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    android:hint="Username"
+                    android:hint="Username atau Email"
                     app:startIconDrawable="@drawable/ic_person"
                     app:startIconTint="@color/colorPrimary">
 
@@ -92,8 +92,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="text"
                         android:maxLines="1"
-                        android:text="admin"
-                        android:textColor="@color/black" />
+                        android:textColor="@android:color/black" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -172,7 +171,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Admin: admin / admin123"
+                        android:text="Admin: aidilfitriyoka2812@gmail.com / admin123"
                         android:textColor="@android:color/darker_gray"
                         android:textSize="12sp" />
 

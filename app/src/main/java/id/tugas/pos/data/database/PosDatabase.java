@@ -20,7 +20,7 @@ import id.tugas.pos.data.model.User;
         TransactionItem.class,
         Expense.class,
         Store.class
-}, version = 2, exportSchema = false)
+}, version = 3, exportSchema = false)
 public abstract class PosDatabase extends RoomDatabase {
     
     private static final String DATABASE_NAME = "pos_database";

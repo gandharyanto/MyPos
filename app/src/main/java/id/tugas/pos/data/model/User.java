@@ -9,6 +9,7 @@ public class User {
     private int id;
     
     private String username;
+    private String email;
     private String password;
     private String fullName;
     private String role; // "ADMIN" or "USER"
@@ -24,6 +25,16 @@ public class User {
 
     public User(String username, String password, String fullName, String role) {
         this.username = username;
+        this.password = password;
+        this.fullName = fullName;
+        this.role = role;
+        this.createdAt = System.currentTimeMillis();
+        this.isActive = true;
+    }
+
+    public User(String username, String email, String password, String fullName, String role) {
+        this.username = username;
+        this.email = email;
         this.password = password;
         this.fullName = fullName;
         this.role = role;
@@ -105,5 +116,13 @@ public class User {
 
     public boolean isUser() {
         return "USER".equals(role);
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 } 

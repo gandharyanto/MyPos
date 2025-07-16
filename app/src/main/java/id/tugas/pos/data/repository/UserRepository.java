@@ -48,10 +48,20 @@ public class UserRepository {
     public LiveData<User> login(String username, String password) {
         return userDao.login(username, password);
     }
+
+    // Login by email (untuk admin)
+    public LiveData<User> loginByEmail(String email, String password) {
+        return userDao.loginByEmail(email, password);
+    }
     
     // Get user by username
     public LiveData<User> getUserByUsername(String username) {
         return userDao.getUserByUsername(username);
+    }
+
+    // Get user by email
+    public LiveData<User> getUserByEmail(String email) {
+        return userDao.getUserByEmail(email);
     }
     
     // Get all active users
