@@ -168,4 +168,24 @@ public class LoginViewModel extends AndroidViewModel {
         User user = currentUser.getValue();
         return user != null ? user.getId() : -1;
     }
+
+    public void changePassword(String oldPassword, String newPassword, ChangePasswordCallback callback) {
+        User user = currentUser.getValue();
+        if (user == null) {
+            callback.onResult(false);
+            return;
+        }
+        // Cek password lama
+        if (!user.getPassword().equals(oldPassword)) {
+            callback.onResult(false);
+            return;
+        }
+        user.setPassword(newPassword);
+        userRepository.update(user);
+        callback.onResult(true);
+    }
+
+    public interface ChangePasswordCallback {
+        void onResult(boolean success);
+    }
 } 

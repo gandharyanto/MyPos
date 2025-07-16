@@ -17,4 +17,16 @@ public class UserManagementViewModel extends AndroidViewModel {
     public LiveData<List<User>> getAllUsers() {
         return userRepository.getAllActiveUsers();
     }
+
+    public void addUser(String fullName, String email, String username, String password, String role, int storeId) {
+        User user;
+        if ("ADMIN".equals(role)) {
+            user = new User(username != null && !username.isEmpty() ? username : email, email, password, fullName, role);
+        } else {
+            user = new User(username, password, fullName, role);
+            user.setEmail(email);
+        }
+        user.setStoreId(storeId);
+        userRepository.insert(user);
+    }
 } 

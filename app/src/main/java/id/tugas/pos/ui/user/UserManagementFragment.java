@@ -16,6 +16,15 @@ import id.tugas.pos.R;
 import id.tugas.pos.data.model.User;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.viewmodel.UserManagementViewModel;
+import android.app.AlertDialog;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.text.TextUtils;
+import android.widget.Toast;
+import id.tugas.pos.viewmodel.StoreViewModel;
+import id.tugas.pos.data.model.Store;
 
 public class UserManagementFragment extends Fragment {
     private RecyclerView recyclerView;
@@ -23,6 +32,7 @@ public class UserManagementFragment extends Fragment {
     private FloatingActionButton fabAddUser;
     private UserManagementViewModel userManagementViewModel;
     private LoginViewModel loginViewModel;
+    private StoreViewModel storeViewModel;
 
     @Nullable
     @Override
@@ -35,6 +45,7 @@ public class UserManagementFragment extends Fragment {
         recyclerView.setAdapter(userAdapter);
         userManagementViewModel = new ViewModelProvider(this).get(UserManagementViewModel.class);
         loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
+        storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
         setupObservers();
         fabAddUser.setOnClickListener(v -> showAddUserDialog());
         return view;
@@ -55,6 +66,76 @@ public class UserManagementFragment extends Fragment {
     }
 
     private void showAddUserDialog() {
-        // TODO: Implementasi dialog tambah user
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_tambah_user, null, false);
+        EditText etFullName = dialogView.findViewById(R.id.etFullName);
+        EditText etEmail = dialogView.findViewById(R.id.etEmail);
+        EditText etUsername = dialogView.findViewById(R.id.etUsername);
+        EditText etPassword = dialogView.findViewById(R.id.etPassword);
+        Spinner spinnerRole = dialogView.findViewById(R.id.spinnerRole);
+        Spinner spinnerStore = dialogView.findViewById(R.id.spinnerStore);
+        Button btnSave = dialogView.findViewById(R.id.btnSave);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        // Setup role spinner
+        ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, new String[]{"Admin", "User"});
+        roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerRole.setAdapter(roleAdapter);
+
+        // Setup store spinner
+        storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
+            ArrayAdapter<String> storeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item);
+            storeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            for (Store store : stores) {
+                storeAdapter.add(store.getName());
+            }
+            spinnerStore.setAdapter(storeAdapter);
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnSave.setOnClickListener(v -> {
+            String fullName = etFullName.getText().toString().trim();
+            String email = etEmail.getText().toString().trim();
+            String username = etUsername.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
+            String role = spinnerRole.getSelectedItem().toString().equals("Admin") ? "ADMIN" : "USER";
+            int storePosition = spinnerStore.getSelectedItemPosition();
+            Store selectedStore = null;
+            if (storeViewModel.getAllStores().getValue() != null && storePosition >= 0) {
+                selectedStore = storeViewModel.getAllStores().getValue().get(storePosition);
+            }
+            // Validasi
+            if (TextUtils.isEmpty(fullName)) {
+                etFullName.setError("Nama lengkap wajib diisi");
+                return;
+            }
+            if (role.equals("ADMIN")) {
+                if (TextUtils.isEmpty(email)) {
+                    etEmail.setError("Email wajib untuk admin");
+                    return;
+                }
+            } else {
+                if (TextUtils.isEmpty(username)) {
+                    etUsername.setError("Username wajib untuk user");
+                    return;
+                }
+            }
+            if (TextUtils.isEmpty(password)) {
+                etPassword.setError("Password wajib diisi");
+                return;
+            }
+            if (selectedStore == null) {
+                Toast.makeText(getContext(), "Pilih toko", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Simpan user baru
+            userManagementViewModel.addUser(fullName, email, username, password, role, selectedStore.getId());
+            dialog.dismiss();
+        });
+        dialog.show();
     }
 } 
