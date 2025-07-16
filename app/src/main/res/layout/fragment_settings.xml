@@ -25,7 +25,6 @@
             android:text="Ubah Password"
             android:layout_marginTop="24dp"
             android:icon="@drawable/ic_lock"
-            android:iconPadding="8dp"
             android:iconTint="@color/colorPrimary" />
 
     </LinearLayout>

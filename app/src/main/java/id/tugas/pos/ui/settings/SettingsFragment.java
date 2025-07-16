@@ -29,11 +29,9 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
         
         TextView tvTitle = view.findViewById(R.id.tvTitle);
-        TextView tvDescription = view.findViewById(R.id.tvDescription);
-        
+
         tvTitle.setText("Pengaturan Aplikasi");
-        tvDescription.setText("Fitur untuk mengatur konfigurasi aplikasi akan diimplementasikan di sini.");
-        
+
         loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
         MaterialButton btnChangePassword = view.findViewById(R.id.btnChangePassword);
         btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
