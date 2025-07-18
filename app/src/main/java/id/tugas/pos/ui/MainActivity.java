@@ -19,18 +19,24 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.google.gson.Gson;
 
 import id.tugas.pos.R;
+import id.tugas.pos.data.model.User;
 import id.tugas.pos.ui.dashboard.DashboardFragment;
 import id.tugas.pos.ui.expense.ExpenseFragment;
 import id.tugas.pos.ui.history.HistoryFragment;
+import id.tugas.pos.ui.login.LoginActivity;
 import id.tugas.pos.ui.produk.ProdukFragment;
 import id.tugas.pos.ui.report.ReportFragment;
 import id.tugas.pos.ui.settings.SettingsFragment;
 import id.tugas.pos.ui.transaksi.TransaksiFragment;
+import id.tugas.pos.ui.user.UserManagementFragment;
 import id.tugas.pos.viewmodel.LoginViewModel;
+import android.util.Log;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    private static final String TAG = "MainActivity";
     
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -38,7 +44,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Toolbar toolbar;
     private TextView tvUserName, tvUserRole;
     private LoginViewModel loginViewModel;
-    
+    private User currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +53,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         
         // Initialize ViewModel
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        
+        // Observe currentUser and jump to login if null
+        loginViewModel.getCurrentUser().observe(this, user -> {
+            Log.d(TAG, "MainActivity: currentUser changed: " + new Gson().toJson(user));
+            if (user == null) {
+                Log.d(TAG, "MainActivity: currentUser is null, navigating to login");
+                navigateToLogin();
+            }
+            currentUser = user;
+            setupUserInfo();
+            
+        });
         
         // Check if user is logged in (pakai SharedPreferences)
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
@@ -59,8 +78,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initViews();
         setupToolbar();
         setupNavigation();
-        setupUserInfo();
-        
+
         // Load default fragment
         if (savedInstanceState == null) {
             loadFragment(new DashboardFragment());
@@ -121,8 +139,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     
     private void setupUserInfo() {
-        String userName = loginViewModel.getCurrentUserName();
-        String userRole = loginViewModel.isAdmin() ? "Administrator" : "Cashier";
+        String userName = currentUser != null ? currentUser.getUsername() : "Guest";
+        String userRole = (currentUser != null ? currentUser.getRole().equalsIgnoreCase("Administrator") : false) ? "Administrator" : "Cashier";
         
         tvUserName.setText(userName);
         tvUserRole.setText(userRole);
@@ -148,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     
     private void navigateToLogin() {
-        Intent intent = new Intent(this, id.tugas.pos.ui.login.LoginActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
@@ -176,6 +194,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (itemId == R.id.nav_report) {
             loadFragment(new ReportFragment());
             getSupportActionBar().setTitle("Laporan");
+        } else if (itemId == R.id.nav_users) {
+            loadFragment(new UserManagementFragment());
+            getSupportActionBar().setTitle("Manajemen User");
         } else if (itemId == R.id.nav_settings) {
             loadFragment(new SettingsFragment());
             getSupportActionBar().setTitle("Pengaturan");

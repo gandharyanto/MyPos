@@ -18,6 +18,7 @@ recyclerview = "1.4.0"
 roomKtx = "2.7.2"
 threetenabp = "1.4.6"
 workRuntime = "2.10.2"
+gson = "2.13.1"
 
 [libraries]
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "lifecycleLivedata" }
@@ -44,6 +45,7 @@ navigation-fragment = { module = "androidx.navigation:navigation-fragment", vers
 preference = { module = "androidx.preference:preference", version.ref = "preference" }
 threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
 work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
