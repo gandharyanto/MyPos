@@ -2,6 +2,7 @@ package id.tugas.pos.ui.login;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -78,12 +79,11 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         
-        // Observe current user
-        loginViewModel.getLoginResult().observe(this, result -> {
-            if (result.isSuccess() && !loginNavigated) {
+        loginViewModel.getCurrentUser().observe(this, user -> {
+            Log.d("LoginActivity", "CurrentUser: " + user);
+            if (user != null && !loginNavigated) {
                 loginNavigated = true;
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
+                navigateToMainActivity();
             }
         });
     }

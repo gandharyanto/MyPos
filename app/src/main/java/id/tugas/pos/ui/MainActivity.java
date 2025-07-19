@@ -253,11 +253,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_expense) {
             // Only allow expense for admin
-            if (loginViewModel.isAdmin()) {
                 loadFragment(new ExpenseFragment());
                 getSupportActionBar().setTitle("Pengeluaran");
                 getSupportActionBar().setSubtitle(null);
-            }
         } else if (itemId == R.id.nav_report) {
             // Only allow report for admin
             if (loginViewModel.isAdmin()) {
@@ -288,7 +286,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     
     private void logout() {
         loginViewModel.logout();
-        navigateToLogin();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
     
     @Override

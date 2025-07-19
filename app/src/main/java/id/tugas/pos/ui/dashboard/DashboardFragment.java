@@ -19,6 +19,9 @@ import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.data.model.Store;
 import id.tugas.pos.data.model.User;
 import id.tugas.pos.ui.MainActivity;
+import id.tugas.pos.data.model.ModalAwal;
+import id.tugas.pos.data.repository.ModalAwalRepository;
+import java.util.Calendar;
 
 public class DashboardFragment extends Fragment {
     
@@ -27,7 +30,9 @@ public class DashboardFragment extends Fragment {
     private LoginViewModel loginViewModel;
     private TextView tvTotalRevenue, tvTodaySales, tvTotalProducts, tvLowStockCount;
     private TextView tvPendingTransactions, tvTotalExpenses, tvProfitMargin;
+    private TextView tvModalAwal;
     private MainActivity mainActivity;
+    private ModalAwalRepository modalAwalRepository;
     
     @Nullable
     @Override
@@ -66,6 +71,25 @@ public class DashboardFragment extends Fragment {
         tvPendingTransactions = view.findViewById(R.id.tvPendingTransactions);
         tvTotalExpenses = view.findViewById(R.id.tvTotalExpenses);
         tvProfitMargin = view.findViewById(R.id.tvProfitMargin);
+        tvModalAwal = view.findViewById(R.id.tvModalAwal);
+        modalAwalRepository = new ModalAwalRepository(requireActivity().getApplication());
+        tampilkanModalAwal();
+    }
+    
+    private void tampilkanModalAwal() {
+        int storeId = 0;
+        if (loginViewModel.getCurrentUser().getValue() != null && loginViewModel.getCurrentUser().getValue().getStoreId() != null) {
+            storeId = loginViewModel.getCurrentUser().getValue().getStoreId();
+        }
+        Calendar cal = Calendar.getInstance();
+        long hariIni = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH)+1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
+        new Thread(() -> {
+            ModalAwal modalAwal = modalAwalRepository.getModalAwalByTanggal(hariIni, storeId);
+            double nominal = modalAwal != null ? modalAwal.nominal : 0.0;
+            requireActivity().runOnUiThread(() -> {
+                tvModalAwal.setText("Modal Awal: " + id.tugas.pos.utils.CurrencyUtils.formatCurrency(nominal));
+            });
+        }).start();
     }
     
     private void setupStoreSelection() {

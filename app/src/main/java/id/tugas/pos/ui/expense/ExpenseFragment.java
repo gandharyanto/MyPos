@@ -26,6 +26,8 @@ import id.tugas.pos.viewmodel.ExpenseViewModel;
 import android.widget.ProgressBar;
 import java.util.List;
 import android.widget.ArrayAdapter;
+import id.tugas.pos.ui.saving.SavingDialogFragment;
+import android.widget.Button;
 
 public class ExpenseFragment extends Fragment {
     
@@ -63,6 +65,10 @@ public class ExpenseFragment extends Fragment {
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
         tvTotalExpenses = view.findViewById(R.id.tvTotalExpenses);
         tvExpenseCount = view.findViewById(R.id.tvExpenseCount);
+        Button btnTambahPengeluaran = view.findViewById(R.id.btnTambahPengeluaran);
+        btnTambahPengeluaran.setOnClickListener(v -> {
+            new SavingDialogFragment().show(getParentFragmentManager(), "saving_dialog");
+        });
     }
 
     private void setupRecyclerView() {
