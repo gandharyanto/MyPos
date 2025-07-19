@@ -12,6 +12,10 @@ import id.tugas.pos.data.model.Store;
 import id.tugas.pos.data.model.Transaction;
 import id.tugas.pos.data.model.TransactionItem;
 import id.tugas.pos.data.model.User;
+import id.tugas.pos.data.model.Saving;
+import id.tugas.pos.data.database.SavingDao;
+import id.tugas.pos.data.model.StockIn;
+import id.tugas.pos.data.database.StockInDao;
 
 @Database(entities = {
         User.class,
@@ -19,8 +23,10 @@ import id.tugas.pos.data.model.User;
         Transaction.class,
         TransactionItem.class,
         Expense.class,
-        Store.class
-}, version = 4, exportSchema = false)
+        Store.class,
+        Saving.class,
+        StockIn.class
+}, version = 7, exportSchema = false)
 public abstract class PosDatabase extends RoomDatabase {
     
     private static final String DATABASE_NAME = "pos_database";
@@ -32,6 +38,8 @@ public abstract class PosDatabase extends RoomDatabase {
     public abstract TransactionItemDao transactionItemDao();
     public abstract ExpenseDao expenseDao();
     public abstract StoreDao storeDao();
+    public abstract SavingDao savingDao();
+    public abstract StockInDao stockInDao();
     
     public static synchronized PosDatabase getInstance(Context context) {
         if (instance == null) {

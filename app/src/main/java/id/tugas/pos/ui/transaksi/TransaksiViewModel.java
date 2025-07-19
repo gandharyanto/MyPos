@@ -3,6 +3,7 @@ package id.tugas.pos.ui.transaksi;
 import android.app.Application;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -22,6 +23,7 @@ import id.tugas.pos.utils.CurrencyUtils;
 
 public class TransaksiViewModel extends AndroidViewModel {
 
+    private static final String TAG = "TransaksiViewModel";
     private ProductRepository productRepository;
     private TransactionRepository transactionRepository;
     private LiveData<List<Product>> allProducts;
@@ -54,19 +56,34 @@ public class TransaksiViewModel extends AndroidViewModel {
     }
 
     public void addToCart(Product product) {
+        Log.d(TAG, "addToCart: Adding product: " + product.getName() + " (ID: " + product.getId() + ")");
         List<TransactionItem> currentCart = cartItems.getValue();
         if (currentCart == null) {
             currentCart = new ArrayList<>();
+            Log.d(TAG, "addToCart: Cart was null, created new ArrayList");
+        }
+
+        Log.d(TAG, "addToCart: Current cart size: " + currentCart.size());
+        
+        // Debug: Log semua item yang ada di cart
+        for (int i = 0; i < currentCart.size(); i++) {
+            TransactionItem item = currentCart.get(i);
+            Log.d(TAG, "addToCart: Cart item " + i + ": ID=" + item.getProductId() + ", Name=" + item.getName() + ", Qty=" + item.getQuantity());
         }
 
         // Check if product already exists in cart
         boolean found = false;
         for (TransactionItem item : currentCart) {
+            Log.d(TAG, "addToCart: Checking item ID: " + item.getProductId() + " vs product ID: " + product.getId());
             if (item.getProductId() == product.getId()) {
+                Log.d(TAG, "addToCart: Product already exists, increasing quantity");
                 // Increase quantity if stock allows
                 if (item.getQuantity() < product.getStock()) {
                     item.setQuantity(item.getQuantity() + 1);
                     item.setSubtotal(item.getQuantity() * item.getPrice());
+                    Log.d(TAG, "addToCart: Quantity increased to: " + item.getQuantity() + ", Subtotal: " + item.getSubtotal());
+                } else {
+                    Log.d(TAG, "addToCart: Cannot increase quantity, stock limit reached");
                 }
                 found = true;
                 break;
@@ -74,18 +91,20 @@ public class TransaksiViewModel extends AndroidViewModel {
         }
 
         if (!found) {
+            Log.d(TAG, "addToCart: Product not found, adding new item");
             // Add new item to cart
             TransactionItem newItem = new TransactionItem(
-                product.getId(),
-                product.getName(),
-                product.getCode(),
-                product.getPrice(),
-                1,
-                product.getPrice()
+                0, // transactionId (akan diset saat checkout)
+                product.getId(), // productId
+                product.getName(), // productName
+                product.getPrice(), // price
+                1 // quantity
             );
             currentCart.add(newItem);
+            Log.d(TAG, "addToCart: New item added, cart size now: " + currentCart.size());
         }
 
+        Log.d(TAG, "addToCart: Setting cart value with " + currentCart.size() + " items");
         cartItems.setValue(currentCart);
     }
 
@@ -116,10 +135,19 @@ public class TransaksiViewModel extends AndroidViewModel {
     }
 
     public void processTransaction(List<TransactionItem> items, double totalAmount) {
+        processTransaction(items, totalAmount, totalAmount);
+    }
+
+    public void processTransaction(List<TransactionItem> items, double totalAmount, double amountPaid) {
         isLoading.setValue(true);
         
-        // Create transaction
+        // Create transaction with payment information
         Transaction transaction = new Transaction(totalAmount, "CASH");
+        transaction.setAmountPaid(amountPaid);
+        transaction.setChange(amountPaid - totalAmount);
+        transaction.setStatus("COMPLETED"); // Set status to COMPLETED
+        
+        Log.d(TAG, "processTransaction: Total: " + totalAmount + ", Paid: " + amountPaid + ", Change: " + (amountPaid - totalAmount) + ", Status: COMPLETED");
         
         transactionRepository.addTransaction(transaction, new TransactionRepository.OnTransactionOperationListener() {
             @Override
@@ -143,13 +171,16 @@ public class TransaksiViewModel extends AndroidViewModel {
                     });
                 }
                 
-                // Print receipt
+                // Print receipt with payment information
                 printReceipt(transaction, items);
                 
-                // Clear cart
+                // Clear cart and refresh dashboard
                 mainHandler.post(() -> {
                     clearCart();
                     isLoading.setValue(false);
+                    
+                    // Refresh dashboard data
+                    refreshDashboardData();
                 });
             }
 
@@ -161,6 +192,12 @@ public class TransaksiViewModel extends AndroidViewModel {
                 });
             }
         });
+    }
+    
+    private void refreshDashboardData() {
+        Log.d(TAG, "refreshDashboardData: Refreshing dashboard data after transaction");
+        // Notify dashboard to refresh data
+        // This will be handled by the Fragment observing the ViewModel
     }
 
     private void updateProductStock(TransactionItem item) {

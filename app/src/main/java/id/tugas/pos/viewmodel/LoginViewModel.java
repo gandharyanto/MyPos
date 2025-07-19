@@ -13,6 +13,8 @@ import com.google.gson.Gson;
 
 import id.tugas.pos.data.model.User;
 import id.tugas.pos.data.repository.UserRepository;
+import id.tugas.pos.data.repository.StoreRepository;
+import id.tugas.pos.data.model.Store;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -21,9 +23,11 @@ import java.util.concurrent.Executors;
 public class LoginViewModel extends AndroidViewModel {
     
     private UserRepository userRepository;
+    private StoreRepository storeRepository;
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private MutableLiveData<User> currentUser = new MutableLiveData<>();
+    private MutableLiveData<LoginResult> loginResult = new MutableLiveData<>();
     private ExecutorService executorService;
     
     private static final String PREFS_NAME = "session";
@@ -34,6 +38,7 @@ public class LoginViewModel extends AndroidViewModel {
     public LoginViewModel(Application application) {
         super(application);
         userRepository = new UserRepository(application);
+        storeRepository = new StoreRepository(application);
         this.context = application.getApplicationContext();
         this.executorService = Executors.newSingleThreadExecutor();
         // Load session if exists
@@ -81,10 +86,12 @@ public class LoginViewModel extends AndroidViewModel {
                 prefs.edit().putInt(KEY_USER_ID, user.getId()).apply();
                 // Update last login time
                 userRepository.updateLastLogin(user.getId(), System.currentTimeMillis());
+                loginResult.setValue(new LoginResult(true));
                 isLoading.setValue(false);
             } else {
                 Log.d(TAG, "login: user is null");
                 errorMessage.setValue("Username/Email atau password salah");
+                loginResult.setValue(new LoginResult(false));
                 isLoading.setValue(false);
             }
             userLiveData.removeObserver(user1 -> {});
@@ -107,13 +114,6 @@ public class LoginViewModel extends AndroidViewModel {
                 // Admin utama dengan email aidilfitriyoka2812@gmail.com dan username admin
                 User admin = new User("admin", "aidilfitriyoka2812@gmail.com", "admin123", "Administrator", "ADMIN");
                 userRepository.insert(admin);
-            }
-            
-            // Cek apakah user testing sudah ada
-            if (!userRepository.isUsernameExists("user")) {
-                // User biasa untuk testing dengan email user@example.com
-                User user = new User("user", "user@example.com", "user123", "Cashier", "USER");
-                userRepository.insert(user);
             }
         });
     }
@@ -199,6 +199,16 @@ public class LoginViewModel extends AndroidViewModel {
         return currentUser;
     }
     
+    public LiveData<LoginResult> getLoginResult() { return loginResult; }
+    
+    public LiveData<List<Store>> getStores() {
+        return storeRepository.getAllStores();
+    }
+    
+    public LiveData<Store> getStoreById(int storeId) {
+        return storeRepository.getStoreById(storeId);
+    }
+    
     public boolean isLoggedIn() {
         return currentUser.getValue() != null;
     }
@@ -246,6 +256,12 @@ public class LoginViewModel extends AndroidViewModel {
 
     public interface ChangePasswordCallback {
         void onResult(boolean success);
+    }
+    
+    public static class LoginResult {
+        private boolean success;
+        public LoginResult(boolean success) { this.success = success; }
+        public boolean isSuccess() { return success; }
     }
     
     @Override

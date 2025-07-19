@@ -94,8 +94,22 @@ public class ProductRepository {
         return productDao.getActiveProductCount();
     }
     
+    public LiveData<Integer> getActiveProductCountByStore(Integer storeId) {
+        if (storeId == null) {
+            return productDao.getActiveProductCount();
+        }
+        return productDao.getActiveProductCountByStore(storeId);
+    }
+    
     public LiveData<Integer> getLowStockCount() {
         return productDao.getLowStockCount();
+    }
+    
+    public LiveData<Integer> getLowStockCountByStore(Integer storeId) {
+        if (storeId == null) {
+            return productDao.getLowStockCount();
+        }
+        return productDao.getLowStockCountByStore(storeId);
     }
     
     // Callback interfaces

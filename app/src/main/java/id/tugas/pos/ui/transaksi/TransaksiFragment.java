@@ -2,6 +2,7 @@ package id.tugas.pos.ui.transaksi;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,9 +37,12 @@ import id.tugas.pos.utils.CurrencyUtils;
 import id.tugas.pos.data.model.Store;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.viewmodel.StoreViewModel;
+import id.tugas.pos.viewmodel.DashboardViewModel;
+import id.tugas.pos.utils.PrinterUtils;
 
 public class TransaksiFragment extends Fragment implements ProductGridAdapter.OnProductClickListener, CartAdapter.OnCartItemClickListener {
 
+    private static final String TAG = "TransaksiFragment";
     private TransaksiViewModel viewModel;
     private ProductGridAdapter productAdapter;
     private CartAdapter cartAdapter;
@@ -95,6 +101,13 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         cartAdapter = new CartAdapter(this);
         recyclerViewCart.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerViewCart.setAdapter(cartAdapter);
+        
+        // Debug: Check RecyclerView visibility and size
+        recyclerViewCart.post(() -> {
+            Log.d(TAG, "setupRecyclerViews: Cart RecyclerView width: " + recyclerViewCart.getWidth() + ", height: " + recyclerViewCart.getHeight());
+            Log.d(TAG, "setupRecyclerViews: Cart RecyclerView visibility: " + (recyclerViewCart.getVisibility() == View.VISIBLE ? "VISIBLE" : "NOT VISIBLE"));
+            Log.d(TAG, "setupRecyclerViews: Cart RecyclerView background: " + recyclerViewCart.getBackground());
+        });
     }
 
     private void setupSearchView() {
@@ -143,12 +156,18 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
     }
 
     private void observeData() {
+        Log.d(TAG, "observeData: Starting to observe data");
+        
         loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+            Log.d(TAG, "observeData: User observed: " + (user != null ? user.getUsername() : "null"));
             if (user != null) {
                 if (user.isAdmin()) {
+                    Log.d(TAG, "observeData: User is admin, setting up store selection");
                     storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
+                        Log.d(TAG, "observeData: Admin storeId: " + storeId);
                         if (storeId != null) {
                             viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                                Log.d(TAG, "observeData: Admin products loaded: " + (products != null ? products.size() : 0));
                                 allProducts = products;
                                 productAdapter.submitList(products);
                             });
@@ -156,8 +175,10 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
                     });
                 } else {
                     Integer storeId = user.getStoreId();
+                    Log.d(TAG, "observeData: User storeId: " + storeId);
                     if (storeId != null) {
                         viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                            Log.d(TAG, "observeData: User products loaded: " + (products != null ? products.size() : 0));
                             allProducts = products;
                             productAdapter.submitList(products);
                         });
@@ -167,8 +188,27 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         });
 
         viewModel.getCartItems().observe(getViewLifecycleOwner(), items -> {
+            Log.d(TAG, "observeData: Cart items observed: " + (items != null ? items.size() : 0));
             cartItems = items;
+            
+            // Debug: Log detail setiap item
+            if (items != null) {
+                for (int i = 0; i < items.size(); i++) {
+                    TransactionItem item = items.get(i);
+                    Log.d(TAG, "observeData: Cart item " + i + ": ID=" + item.getProductId() + ", Name=" + item.getName() + ", Qty=" + item.getQuantity() + ", Price=" + item.getPrice());
+                }
+            }
+            
+            Log.d(TAG, "observeData: Submitting list to adapter with " + (items != null ? items.size() : 0) + " items");
             cartAdapter.submitList(items);
+            
+            // Debug: Check adapter state after submit
+            recyclerViewCart.post(() -> {
+                Log.d(TAG, "observeData: After submitList - Adapter item count: " + cartAdapter.getItemCount());
+                Log.d(TAG, "observeData: After submitList - RecyclerView child count: " + recyclerViewCart.getChildCount());
+                Log.d(TAG, "observeData: After submitList - RecyclerView layout manager: " + recyclerViewCart.getLayoutManager());
+            });
+            
             updateCartSummary();
         });
     }
@@ -185,6 +225,7 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
     }
 
     private void updateCartSummary() {
+        Log.d(TAG, "updateCartSummary: Updating cart summary with " + cartItems.size() + " items");
         int totalItems = 0;
         double totalAmount = 0;
 
@@ -193,6 +234,7 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
             totalAmount += item.getSubtotal();
         }
 
+        Log.d(TAG, "updateCartSummary: Total items: " + totalItems + ", Total amount: " + totalAmount);
         tvTotalItems.setText("Total Item: " + totalItems);
         tvTotalAmount.setText(CurrencyUtils.formatCurrency(totalAmount));
     }
@@ -207,15 +249,117 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
                 .mapToDouble(TransactionItem::getSubtotal)
                 .sum();
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Konfirmasi Transaksi")
-                .setMessage("Total: " + CurrencyUtils.formatCurrency(totalAmount) + "\n\nLanjutkan transaksi?")
-                .setPositiveButton("Ya", (dialog, which) -> {
-                    viewModel.processTransaction(cartItems, totalAmount);
-                    Toast.makeText(requireContext(), "Transaksi berhasil", Toast.LENGTH_SHORT).show();
-                })
+        // Create custom dialog layout
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_checkout, null);
+        TextView tvTotalAmount = dialogView.findViewById(R.id.tv_total_amount);
+        EditText etAmountPaid = dialogView.findViewById(R.id.et_amount_paid);
+        TextView tvChange = dialogView.findViewById(R.id.tv_change);
+        TextView tvChangeLabel = dialogView.findViewById(R.id.tv_change_label);
+
+        tvTotalAmount.setText(CurrencyUtils.formatCurrency(totalAmount));
+        etAmountPaid.setText(String.valueOf((int) totalAmount)); // Set default value
+        etAmountPaid.selectAll(); // Select all text for easy editing
+
+        // Calculate change when amount paid changes
+        etAmountPaid.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                try {
+                    double amountPaid = Double.parseDouble(s.toString());
+                    double change = amountPaid - totalAmount;
+                    
+                    if (change >= 0) {
+                        tvChange.setText(CurrencyUtils.formatCurrency(change));
+                        tvChange.setTextColor(requireContext().getResources().getColor(android.R.color.holo_green_dark));
+                        tvChangeLabel.setText("Kembalian:");
+                    } else {
+                        tvChange.setText(CurrencyUtils.formatCurrency(Math.abs(change)));
+                        tvChange.setTextColor(requireContext().getResources().getColor(android.R.color.holo_red_dark));
+                        tvChangeLabel.setText("Kurang:");
+                    }
+                } catch (NumberFormatException e) {
+                    tvChange.setText("Rp 0");
+                    tvChangeLabel.setText("Kembalian:");
+                }
+            }
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle("Pembayaran")
+                .setView(dialogView)
+                .setPositiveButton("Bayar", null) // Set to null first, we'll override it
                 .setNegativeButton("Batal", null)
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            positiveButton.setOnClickListener(v -> {
+                try {
+                    double amountPaid = Double.parseDouble(etAmountPaid.getText().toString());
+                    
+                    if (amountPaid < totalAmount) {
+                        Toast.makeText(requireContext(), "Jumlah pembayaran kurang dari total", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    // Process transaction with payment amount
+                    viewModel.processTransaction(cartItems, totalAmount, amountPaid);
+                    
+                    // Show success dialog with change
+                    double change = amountPaid - totalAmount;
+                    showSuccessDialog(totalAmount, amountPaid, change);
+                    
+                    dialog.dismiss();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(requireContext(), "Masukkan jumlah pembayaran yang valid", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        dialog.show();
+    }
+
+    private void showSuccessDialog(double totalAmount, double amountPaid, double change) {
+        String message = "Transaksi Berhasil!\n\n" +
+                "Total: " + CurrencyUtils.formatCurrency(totalAmount) + "\n" +
+                "Dibayar: " + CurrencyUtils.formatCurrency(amountPaid) + "\n" +
+                "Kembalian: " + CurrencyUtils.formatCurrency(change);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Sukses")
+                .setMessage(message)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    // Cart will be cleared automatically by ViewModel
+                    // Refresh dashboard data
+                    refreshDashboardData();
+                    // Notifikasi print
+                    if (PrinterUtils.isPrinterConnected()) {
+                        Toast.makeText(requireContext(), "Struk berhasil dikirim ke printer", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(), "Struk GAGAL dikirim ke printer! Pastikan printer aktif & terhubung", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .setCancelable(false)
                 .show();
+    }
+    
+    private void refreshDashboardData() {
+        Log.d(TAG, "refreshDashboardData: Refreshing dashboard data");
+        // Get DashboardViewModel and refresh data
+        try {
+            DashboardViewModel dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
+            // Force refresh all dashboard data
+            dashboardViewModel.forceRefreshAllData();
+            Log.d(TAG, "refreshDashboardData: Dashboard force refresh triggered");
+        } catch (Exception e) {
+            Log.e(TAG, "refreshDashboardData: Error refreshing dashboard", e);
+        }
     }
 
     private void showClearCartDialog() {
@@ -237,6 +381,7 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
 
     @Override
     public void onProductClick(Product product) {
+        Log.d(TAG, "onProductClick: Adding product to cart: " + product.getName());
         viewModel.addToCart(product);
         Toast.makeText(requireContext(), product.getName() + " ditambahkan ke keranjang", Toast.LENGTH_SHORT).show();
     }

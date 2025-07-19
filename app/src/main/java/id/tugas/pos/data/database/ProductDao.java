@@ -11,6 +11,7 @@ import androidx.room.Update;
 import java.util.List;
 
 import id.tugas.pos.data.model.Product;
+import id.tugas.pos.ui.report.LaporanStokItem;
 
 @Dao
 public interface ProductDao {
@@ -78,4 +79,13 @@ public interface ProductDao {
 
     @Query("SELECT * FROM products WHERE isActive = 1 AND storeId = :storeId ORDER BY name ASC")
     LiveData<List<Product>> getAllActiveProductsByStore(int storeId);
+    
+    @Query("SELECT COUNT(*) FROM products WHERE isActive = 1 AND storeId = :storeId")
+    LiveData<Integer> getActiveProductCountByStore(int storeId);
+    
+    @Query("SELECT COUNT(*) FROM products WHERE stock <= minStock AND isActive = 1 AND storeId = :storeId")
+    LiveData<Integer> getLowStockCountByStore(int storeId);
+
+    @Query("SELECT name as namaProduk, 0 as stokMasuk, 0 as stokKeluar, stock as stokTersisa FROM products WHERE isActive = 1 ORDER BY name ASC")
+    List<LaporanStokItem> getLaporanStokTersisa();
 } 

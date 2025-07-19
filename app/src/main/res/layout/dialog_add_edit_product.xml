@@ -30,6 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
+            android:capitalize="words"
             android:maxLines="1"
             android:textColor="@color/black" />
 
@@ -145,6 +146,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
+                android:capitalize="words"
                 android:maxLines="1"
                 android:text="pcs"
                 android:textColor="@color/black" />
@@ -165,6 +167,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
+            android:capitalize="words"
             android:maxLines="1"
             android:textColor="@color/black" />
 

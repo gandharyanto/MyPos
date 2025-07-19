@@ -11,3 +11,5 @@ local.properties
 pos_database
 pos_database-shm
 pos_database-wal
+app/debug/
+app/release/

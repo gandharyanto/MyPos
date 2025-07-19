@@ -91,6 +91,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="text"
+                        android:capitalize="words"
                         android:maxLines="1"
                         android:textColor="@android:color/black" />
 
@@ -114,7 +115,6 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:maxLines="1"
-                        android:text="admin123"
                         android:textColor="@color/black" />
 
                 </com.google.android.material.textfield.TextInputLayout>

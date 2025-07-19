@@ -31,6 +31,7 @@
             android:layout_weight="1" />
 
         <!-- Bottom Navigation (for tablets) -->
+        <!--
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
             android:layout_width="match_parent"
@@ -38,6 +39,7 @@
             android:background="?android:attr/windowBackground"
             android:visibility="gone"
             app:menu="@menu/bottom_nav_menu" />
+        -->
 
     </LinearLayout>
 

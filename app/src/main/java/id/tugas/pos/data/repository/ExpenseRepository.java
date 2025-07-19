@@ -4,6 +4,10 @@ import android.app.Application;
 import android.os.AsyncTask;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import id.tugas.pos.ui.report.LaporanPengeluaranItem;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import java.util.List;
 
@@ -17,6 +21,7 @@ public class ExpenseRepository {
     private LiveData<List<Expense>> allExpenses;
     private LiveData<Double> totalExpenses;
     private LiveData<Integer> expenseCount;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
     
     public ExpenseRepository(Application application) {
         PosDatabase database = PosDatabase.getInstance(application);
@@ -118,9 +123,26 @@ public class ExpenseRepository {
     public LiveData<Double> getTotalExpensesByStore(int storeId) {
         return expenseDao.getTotalExpensesByStore(storeId);
     }
+    
+    public LiveData<Double> getTotalExpensesByStore(Integer storeId) {
+        if (storeId == null) {
+            return totalExpenses;
+        }
+        return expenseDao.getTotalExpensesByStore(storeId);
+    }
 
     public LiveData<Integer> getExpenseCountByStore(int storeId) {
         return expenseDao.getExpenseCountByStore(storeId);
+    }
+    
+    // Laporan pengeluaran dengan filter tanggal
+    public LiveData<List<LaporanPengeluaranItem>> getLaporanPengeluaran(long startDate, long endDate) {
+        MutableLiveData<List<LaporanPengeluaranItem>> liveData = new MutableLiveData<>();
+        executorService.execute(() -> {
+            List<LaporanPengeluaranItem> data = expenseDao.getLaporanPengeluaran(startDate, endDate);
+            liveData.postValue(data);
+        });
+        return liveData;
     }
     
     // AsyncTask classes

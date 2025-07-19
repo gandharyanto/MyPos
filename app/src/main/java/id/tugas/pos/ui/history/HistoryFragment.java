@@ -38,6 +38,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
 import android.content.Context;
 import androidx.lifecycle.Observer;
+import id.tugas.pos.data.repository.TransactionRepository;
 
 public class HistoryFragment extends Fragment implements TransactionHistoryAdapter.OnTransactionClickListener {
     
@@ -295,22 +296,73 @@ public class HistoryFragment extends Fragment implements TransactionHistoryAdapt
         
         StringBuilder details = new StringBuilder();
         details.append("ID: ").append(transaction.getId()).append("\n");
-        details.append("Tanggal: ").append(transaction.getCreatedAt()).append("\n");
+        details.append("Tanggal: ").append(transaction.getFormattedDate()).append("\n");
         details.append("Total: ").append(id.tugas.pos.utils.CurrencyUtils.formatCurrency(transaction.getTotalAmount())).append("\n");
         details.append("Metode Pembayaran: ").append(transaction.getPaymentMethod()).append("\n");
         details.append("Status: ").append(transaction.getStatus()).append("\n");
         
         if (transaction.getAmountPaid() > 0) {
             details.append("Dibayar: ").append(id.tugas.pos.utils.CurrencyUtils.formatCurrency(transaction.getAmountPaid())).append("\n");
-            details.append("Kembalian: ").append(id.tugas.pos.utils.CurrencyUtils.formatCurrency(transaction.getChange()));
+            details.append("Kembalian: ").append(id.tugas.pos.utils.CurrencyUtils.formatCurrency(transaction.getChange())).append("\n");
         }
         
         builder.setMessage(details.toString());
         builder.setPositiveButton("OK", null);
+        
+        // Add button to change status to COMPLETED if current status is PENDING
+        if ("PENDING".equals(transaction.getStatus())) {
+            builder.setNeutralButton("Ubah ke COMPLETED", (dialog, which) -> {
+                updateTransactionStatus(transaction);
+            });
+        }
+        
         builder.setNegativeButton("Cetak", (dialog, which) -> {
             // TODO: Implement print functionality
         });
         
         builder.show();
+    }
+    
+    private void updateTransactionStatus(Transaction transaction) {
+        // Show confirmation dialog
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Konfirmasi")
+                .setMessage("Apakah Anda yakin ingin mengubah status transaksi #" + transaction.getId() + " menjadi COMPLETED?")
+                .setPositiveButton("Ya", (dialog, which) -> {
+                    // Update transaction status
+                    transaction.setStatus("COMPLETED");
+                    transaction.setUpdatedAt(System.currentTimeMillis());
+                    
+                    transactionViewModel.updateTransaction(transaction, new TransactionRepository.OnTransactionOperationListener() {
+                        @Override
+                        public void onSuccess() {
+                            // Show success message on main thread
+                            requireActivity().runOnUiThread(() -> {
+                                new AlertDialog.Builder(requireContext())
+                                        .setTitle("Sukses")
+                                        .setMessage("Status transaksi berhasil diubah menjadi COMPLETED")
+                                        .setPositiveButton("OK", null)
+                                        .show();
+                                
+                                // Refresh transaction list
+                                loadRecentTransactions();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            // Show error message on main thread
+                            requireActivity().runOnUiThread(() -> {
+                                new AlertDialog.Builder(requireContext())
+                                        .setTitle("Error")
+                                        .setMessage("Gagal mengubah status transaksi: " + error)
+                                        .setPositiveButton("OK", null)
+                                        .show();
+                            });
+                        }
+                    });
+                })
+                .setNegativeButton("Batal", null)
+                .show();
     }
 } 

@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
-    private BottomNavigationView bottomNavigationView;
     private Toolbar toolbar;
     private TextView tvUserName, tvUserRole;
     private LoginViewModel loginViewModel;
@@ -83,14 +82,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Load default fragment
         if (savedInstanceState == null) {
-            loadFragment(new DashboardFragment());
+            // Load default fragment based on user role
+            if (loginViewModel.isAdmin()) {
+                loadFragment(new DashboardFragment());
+                getSupportActionBar().setTitle("Dashboard");
+            } else {
+                loadFragment(new TransaksiFragment());
+                getSupportActionBar().setTitle("Transaksi");
+            }
         }
     }
     
     private void initViews() {
         drawerLayout = findViewById(R.id.drawerLayout);
         navigationView = findViewById(R.id.navigationView);
-        bottomNavigationView = findViewById(R.id.bottomNavigationView);
         toolbar = findViewById(R.id.toolbar);
         
         // Get header views
@@ -156,37 +161,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void setupNavigation() {
         navigationView.setNavigationItemSelectedListener(this);
         
-        // Setup bottom navigation for tablet
-        bottomNavigationView.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.nav_dashboard) {
-                loadFragment(new DashboardFragment());
-                getSupportActionBar().setTitle("Dashboard");
-                getSupportActionBar().setSubtitle(null);
-                return true;
-            } else if (itemId == R.id.nav_products) {
-                loadFragment(new ProdukFragment());
-                getSupportActionBar().setTitle("Produk");
-                getSupportActionBar().setSubtitle(null);
-                return true;
-            } else if (itemId == R.id.nav_transaction) {
-                loadFragment(new TransaksiFragment());
-                getSupportActionBar().setTitle("Transaksi");
-                getSupportActionBar().setSubtitle(null);
-                return true;
-            } else if (itemId == R.id.nav_history) {
-                loadFragment(new HistoryFragment());
-                getSupportActionBar().setTitle("Riwayat");
-                getSupportActionBar().setSubtitle(null);
-                return true;
-            } else if (itemId == R.id.nav_report) {
-                loadFragment(new ReportFragment());
-                getSupportActionBar().setTitle("Laporan");
-                getSupportActionBar().setSubtitle(null);
-                return true;
-            }
-            return false;
-        });
+        // Navigasi hanya lewat navigationView (drawer)
     }
     
     private void setupUserInfo() {
@@ -196,11 +171,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tvUserName.setText(userName);
         tvUserRole.setText(userRole);
         
-        // Hide admin-only menu items for regular users
+        Menu menu = navigationView.getMenu();
         if (!loginViewModel.isAdmin()) {
-            Menu menu = navigationView.getMenu();
-            menu.findItem(R.id.nav_users).setVisible(false);
-            menu.findItem(R.id.nav_settings).setVisible(false);
+            MenuItem item;
+            item = menu.findItem(R.id.nav_users); if (item != null) item.setVisible(false);
+            item = menu.findItem(R.id.nav_settings); if (item != null) item.setVisible(false);
+            item = menu.findItem(R.id.nav_dashboard); if (item != null) item.setVisible(false); // Hide dashboard for users
+            // item = menu.findItem(R.id.nav_expense); if (item != null) item.setVisible(false); // Pengeluaran DITAMPILKAN untuk user
+            item = menu.findItem(R.id.nav_report); if (item != null) item.setVisible(false); // Hide report for users
+        } else {
+            // Hide transaksi, riwayat, dan pengeluaran untuk admin
+            MenuItem item;
+            item = menu.findItem(R.id.nav_transaction); if (item != null) item.setVisible(false);
+            item = menu.findItem(R.id.nav_history); if (item != null) item.setVisible(false);
+            item = menu.findItem(R.id.nav_expense); if (item != null) item.setVisible(false);
+        }
+        
+        // Hide juga di bottom navigation
+        if (loginViewModel.isAdmin()) {
+            MenuItem item;
+            item = menu.findItem(R.id.nav_transaction); if (item != null) item.setVisible(false);
+            item = menu.findItem(R.id.nav_history); if (item != null) item.setVisible(false);
+            item = menu.findItem(R.id.nav_expense); if (item != null) item.setVisible(false);
+        } else {
+            MenuItem item;
+            item = menu.findItem(R.id.nav_dashboard); if (item != null) item.setVisible(false);
+            item = menu.findItem(R.id.nav_report); if (item != null) item.setVisible(false);
+            // Pengeluaran DITAMPILKAN untuk user
         }
         
         // Invalidate options menu to update toolbar items
@@ -237,9 +234,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int itemId = item.getItemId();
         
         if (itemId == R.id.nav_dashboard) {
-            loadFragment(new DashboardFragment());
-            getSupportActionBar().setTitle("Dashboard");
-            getSupportActionBar().setSubtitle(null);
+            // Only allow dashboard for admin
+            if (loginViewModel.isAdmin()) {
+                loadFragment(new DashboardFragment());
+                getSupportActionBar().setTitle("Dashboard");
+                getSupportActionBar().setSubtitle(null);
+            }
         } else if (itemId == R.id.nav_products) {
             loadFragment(new ProdukFragment());
             getSupportActionBar().setTitle("Produk");
@@ -253,21 +253,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             getSupportActionBar().setTitle("Riwayat");
             getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_expense) {
-            loadFragment(new ExpenseFragment());
-            getSupportActionBar().setTitle("Pengeluaran");
-            getSupportActionBar().setSubtitle(null);
+            // Only allow expense for admin
+            if (loginViewModel.isAdmin()) {
+                loadFragment(new ExpenseFragment());
+                getSupportActionBar().setTitle("Pengeluaran");
+                getSupportActionBar().setSubtitle(null);
+            }
         } else if (itemId == R.id.nav_report) {
-            loadFragment(new ReportFragment());
-            getSupportActionBar().setTitle("Laporan");
-            getSupportActionBar().setSubtitle(null);
+            // Only allow report for admin
+            if (loginViewModel.isAdmin()) {
+                loadFragment(new ReportFragment());
+                getSupportActionBar().setTitle("Laporan");
+                getSupportActionBar().setSubtitle(null);
+            }
         } else if (itemId == R.id.nav_users) {
-            loadFragment(new UserManagementFragment());
-            getSupportActionBar().setTitle("Manajemen User");
-            getSupportActionBar().setSubtitle(null);
+            // Only allow user management for admin
+            if (loginViewModel.isAdmin()) {
+                loadFragment(new UserManagementFragment());
+                getSupportActionBar().setTitle("Manajemen User");
+                getSupportActionBar().setSubtitle(null);
+            }
         } else if (itemId == R.id.nav_settings) {
-            loadFragment(new SettingsFragment());
-            getSupportActionBar().setTitle("Pengaturan");
-            getSupportActionBar().setSubtitle(null);
+            // Only allow settings for admin
+            if (loginViewModel.isAdmin()) {
+                loadFragment(new SettingsFragment());
+                getSupportActionBar().setTitle("Pengaturan");
+                getSupportActionBar().setSubtitle(null);
+            }
         } else if (itemId == R.id.nav_logout) {
             logout();
         }

@@ -21,6 +21,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etUsername, etPassword;
     private MaterialButton btnLogin;
     private View progressBar, errorMessage;
+    private boolean loginNavigated = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,10 +79,11 @@ public class LoginActivity extends AppCompatActivity {
         });
         
         // Observe current user
-        loginViewModel.getCurrentUser().observe(this, user -> {
-            if (user != null) {
-                // Login successful, navigate to main activity
-                navigateToMainActivity();
+        loginViewModel.getLoginResult().observe(this, result -> {
+            if (result.isSuccess() && !loginNavigated) {
+                loginNavigated = true;
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
             }
         });
     }

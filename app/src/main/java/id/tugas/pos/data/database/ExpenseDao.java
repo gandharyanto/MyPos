@@ -74,4 +74,10 @@ public interface ExpenseDao {
 
     @Query("SELECT COUNT(*) FROM expenses WHERE storeId = :storeId")
     LiveData<Integer> getExpenseCountByStore(int storeId);
+
+    @Query("SELECT expenseDate as tanggal, category as kategori, amount as nominal, description as keterangan " +
+           "FROM expenses " +
+           "WHERE expenseDate BETWEEN :startDate AND :endDate " +
+           "ORDER BY expenseDate ASC")
+    List<id.tugas.pos.ui.report.LaporanPengeluaranItem> getLaporanPengeluaran(long startDate, long endDate);
 } 

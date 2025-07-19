@@ -138,12 +138,9 @@ id.tugas.pos/
 ### Default Credentials
 ```
 Admin:
-- Username: admin
+- Username: aidilfitriyoka2812@gmail.com
 - Password: admin123
 
-User:
-- Username: user
-- Password: user123
 ```
 
 ## 🖨️ Printer Thermal Setup

@@ -21,6 +21,7 @@ public class TransactionItem {
     private double subtotal;
     private double discount;
     private double total;
+    private long createdAt;
 
     public TransactionItem() {
     }
@@ -121,6 +122,9 @@ public class TransactionItem {
     public void setTotal(double total) {
         this.total = total;
     }
+
+    public long getCreatedAt() { return createdAt; }
+    public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
 
     private void calculateTotals() {
         this.subtotal = price * quantity;

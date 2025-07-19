@@ -1,6 +1,8 @@
 package id.tugas.pos.viewmodel;
 
 import android.app.Application;
+import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -11,12 +13,16 @@ import java.util.Calendar;
 import id.tugas.pos.data.repository.ExpenseRepository;
 import id.tugas.pos.data.repository.ProductRepository;
 import id.tugas.pos.data.repository.TransactionRepository;
+import id.tugas.pos.data.repository.UserRepository;
+import id.tugas.pos.data.model.User;
 
 public class DashboardViewModel extends AndroidViewModel {
     
+    private static final String TAG = "DashboardViewModel";
     private TransactionRepository transactionRepository;
     private ProductRepository productRepository;
     private ExpenseRepository expenseRepository;
+    private UserRepository userRepository;
     
     private MutableLiveData<Double> totalRevenue = new MutableLiveData<>();
     private MutableLiveData<Double> todaySales = new MutableLiveData<>();
@@ -26,46 +32,198 @@ public class DashboardViewModel extends AndroidViewModel {
     private MutableLiveData<Double> totalExpenses = new MutableLiveData<>();
     private MutableLiveData<Double> profitMargin = new MutableLiveData<>();
     
+    private Integer currentStoreId = null;
+    
     public DashboardViewModel(Application application) {
         super(application);
         transactionRepository = new TransactionRepository(application);
         productRepository = new ProductRepository(application);
         expenseRepository = new ExpenseRepository(application);
+        userRepository = new UserRepository(application);
     }
     
     public void loadDashboardData() {
-        // Load total revenue
-        transactionRepository.getTotalRevenue().observeForever(revenue -> {
+        Log.d(TAG, "loadDashboardData: Loading dashboard data");
+        // Load dashboard data berdasarkan user role
+        // Untuk admin: load semua data (storeId = null)
+        // Untuk user: load data berdasarkan storeId user
+        loadDashboardDataByUserRole();
+    }
+    
+    private void loadDashboardDataByUserRole() {
+        SharedPreferences prefs = getApplication().getSharedPreferences("session", 0);
+        int userId = prefs.getInt("userId", -1);
+        
+        if (userId != -1) {
+            userRepository.getUserById(userId).observeForever(user -> {
+                if (user != null) {
+                    Integer storeId = null;
+                    if (user.isUser()) {
+                        storeId = user.getStoreId();
+                        Log.d(TAG, "loadDashboardDataByUserRole: User storeId: " + storeId);
+                    } else {
+                        Log.d(TAG, "loadDashboardDataByUserRole: Admin user, loading all stores data");
+                    }
+                    // Jika admin, storeId tetap null (akan menampilkan data semua store)
+                    
+                    currentStoreId = storeId;
+                    loadDashboardDataByStore(storeId);
+                }
+            });
+        } else {
+            // Default load semua data
+            Log.d(TAG, "loadDashboardDataByUserRole: No user session, loading all stores data");
+            currentStoreId = null;
+            loadDashboardDataByStore(null);
+        }
+    }
+    
+    // Method untuk load dashboard data berdasarkan storeId tertentu (untuk admin)
+    public void loadDashboardDataByStore(Integer storeId) {
+        Log.d(TAG, "loadDashboardDataByStore: Loading data for storeId: " + storeId);
+        currentStoreId = storeId;
+        
+        // Load total revenue - use observe instead of observeForever
+        transactionRepository.getTotalRevenueByStore(storeId).observeForever(revenue -> {
+            Log.d(TAG, "loadDashboardDataByStore: Total revenue: " + revenue);
             totalRevenue.setValue(revenue != null ? revenue : 0.0);
+            // Recalculate profit margin when revenue changes
+            calculateProfitMargin();
         });
         
         // Load today's sales
-        loadTodaySales();
+        loadTodaySales(storeId);
         
         // Load product counts
-        productRepository.getActiveProductCount().observeForever(count -> {
+        productRepository.getActiveProductCountByStore(storeId).observeForever(count -> {
+            Log.d(TAG, "loadDashboardDataByStore: Total products: " + count);
             totalProducts.setValue(count != null ? count : 0);
         });
         
-        productRepository.getLowStockCount().observeForever(count -> {
+        productRepository.getLowStockCountByStore(storeId).observeForever(count -> {
+            Log.d(TAG, "loadDashboardDataByStore: Low stock count: " + count);
             lowStockCount.setValue(count != null ? count : 0);
         });
         
         // Load pending transactions
-        transactionRepository.getPendingTransactionCount().observeForever(count -> {
+        transactionRepository.getPendingTransactionCountByStore(storeId).observeForever(count -> {
+            Log.d(TAG, "loadDashboardDataByStore: Pending transactions: " + count);
             pendingTransactions.setValue(count != null ? count : 0);
         });
         
         // Load total expenses
-        expenseRepository.getTotalExpenses().observeForever(expenses -> {
+        expenseRepository.getTotalExpensesByStore(storeId).observeForever(expenses -> {
+            Log.d(TAG, "loadDashboardDataByStore: Total expenses: " + expenses);
             totalExpenses.setValue(expenses != null ? expenses : 0.0);
+            // Recalculate profit margin when expenses change
+            calculateProfitMargin();
         });
-        
-        // Calculate profit margin
-        calculateProfitMargin();
     }
     
-    private void loadTodaySales() {
+    // Method untuk refresh data setelah transaksi baru
+    public void refreshData() {
+        Log.d(TAG, "refreshData: Refreshing dashboard data for storeId: " + currentStoreId);
+        
+        // Force refresh by re-observing the data
+        if (currentStoreId != null) {
+            loadDashboardDataByStore(currentStoreId);
+        } else {
+            loadDashboardData();
+        }
+    }
+    
+    // Method untuk force refresh specific data
+    public void refreshRevenueData() {
+        Log.d(TAG, "refreshRevenueData: Refreshing revenue data for storeId: " + currentStoreId);
+        
+        // Force refresh revenue data
+        transactionRepository.getTotalRevenueByStore(currentStoreId).observeForever(revenue -> {
+            Log.d(TAG, "refreshRevenueData: New total revenue: " + revenue);
+            totalRevenue.setValue(revenue != null ? revenue : 0.0);
+            calculateProfitMargin();
+        });
+        
+        // Force refresh today's sales
+        loadTodaySales(currentStoreId);
+    }
+    
+    // Method untuk force refresh all data secara manual
+    public void forceRefreshAllData() {
+        Log.d(TAG, "forceRefreshAllData: Force refreshing all dashboard data for storeId: " + currentStoreId);
+        
+        // Force refresh semua data
+        if (currentStoreId != null) {
+            // Refresh revenue
+            transactionRepository.getTotalRevenueByStore(currentStoreId).observeForever(revenue -> {
+                Log.d(TAG, "forceRefreshAllData: Total revenue: " + revenue);
+                totalRevenue.setValue(revenue != null ? revenue : 0.0);
+                calculateProfitMargin();
+            });
+            
+            // Refresh today sales
+            loadTodaySales(currentStoreId);
+            
+            // Refresh products
+            productRepository.getActiveProductCountByStore(currentStoreId).observeForever(count -> {
+                Log.d(TAG, "forceRefreshAllData: Total products: " + count);
+                totalProducts.setValue(count != null ? count : 0);
+            });
+            
+            productRepository.getLowStockCountByStore(currentStoreId).observeForever(count -> {
+                Log.d(TAG, "forceRefreshAllData: Low stock count: " + count);
+                lowStockCount.setValue(count != null ? count : 0);
+            });
+            
+            // Refresh pending transactions
+            transactionRepository.getPendingTransactionCountByStore(currentStoreId).observeForever(count -> {
+                Log.d(TAG, "forceRefreshAllData: Pending transactions: " + count);
+                pendingTransactions.setValue(count != null ? count : 0);
+            });
+            
+            // Refresh expenses
+            expenseRepository.getTotalExpensesByStore(currentStoreId).observeForever(expenses -> {
+                Log.d(TAG, "forceRefreshAllData: Total expenses: " + expenses);
+                totalExpenses.setValue(expenses != null ? expenses : 0.0);
+                calculateProfitMargin();
+            });
+        } else {
+            // Refresh untuk semua store (admin)
+            transactionRepository.getTotalRevenue().observeForever(revenue -> {
+                Log.d(TAG, "forceRefreshAllData: Total revenue (all stores): " + revenue);
+                totalRevenue.setValue(revenue != null ? revenue : 0.0);
+                calculateProfitMargin();
+            });
+            
+            // Load today's sales for all stores
+            loadTodaySales(null);
+            
+            // Load product counts for all stores
+            productRepository.getActiveProductCount().observeForever(count -> {
+                Log.d(TAG, "forceRefreshAllData: Total products (all stores): " + count);
+                totalProducts.setValue(count != null ? count : 0);
+            });
+            
+            productRepository.getLowStockCount().observeForever(count -> {
+                Log.d(TAG, "forceRefreshAllData: Low stock count (all stores): " + count);
+                lowStockCount.setValue(count != null ? count : 0);
+            });
+            
+            // Load pending transactions for all stores
+            transactionRepository.getPendingTransactionCount().observeForever(count -> {
+                Log.d(TAG, "forceRefreshAllData: Pending transactions (all stores): " + count);
+                pendingTransactions.setValue(count != null ? count : 0);
+            });
+            
+            // Load total expenses for all stores
+            expenseRepository.getTotalExpenses().observeForever(expenses -> {
+                Log.d(TAG, "forceRefreshAllData: Total expenses (all stores): " + expenses);
+                totalExpenses.setValue(expenses != null ? expenses : 0.0);
+                calculateProfitMargin();
+            });
+        }
+    }
+    
+    private void loadTodaySales(Integer storeId) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -79,7 +237,8 @@ public class DashboardViewModel extends AndroidViewModel {
         calendar.set(Calendar.MILLISECOND, 999);
         long endOfDay = calendar.getTimeInMillis();
         
-        transactionRepository.getRevenueByDateRange(startOfDay, endOfDay).observeForever(sales -> {
+        transactionRepository.getRevenueByDateRangeAndStore(startOfDay, endOfDay, storeId).observeForever(sales -> {
+            Log.d(TAG, "loadTodaySales: Today sales: " + sales);
             todaySales.setValue(sales != null ? sales : 0.0);
         });
     }
@@ -93,8 +252,10 @@ public class DashboardViewModel extends AndroidViewModel {
         if (revenue != null && expenses != null && revenue > 0) {
             double profit = revenue - expenses;
             double margin = (profit / revenue) * 100;
+            Log.d(TAG, "calculateProfitMargin: Revenue: " + revenue + ", Expenses: " + expenses + ", Margin: " + margin);
             profitMargin.setValue(margin);
         } else {
+            Log.d(TAG, "calculateProfitMargin: Setting margin to 0");
             profitMargin.setValue(0.0);
         }
     }

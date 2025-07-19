@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.AdapterView;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,12 +15,19 @@ import androidx.lifecycle.ViewModelProvider;
 
 import id.tugas.pos.R;
 import id.tugas.pos.viewmodel.DashboardViewModel;
+import id.tugas.pos.viewmodel.LoginViewModel;
+import id.tugas.pos.data.model.Store;
+import id.tugas.pos.data.model.User;
+import id.tugas.pos.ui.MainActivity;
 
 public class DashboardFragment extends Fragment {
     
+    private static final String TAG = "DashboardFragment";
     private DashboardViewModel dashboardViewModel;
+    private LoginViewModel loginViewModel;
     private TextView tvTotalRevenue, tvTodaySales, tvTotalProducts, tvLowStockCount;
     private TextView tvPendingTransactions, tvTotalExpenses, tvProfitMargin;
+    private MainActivity mainActivity;
     
     @Nullable
     @Override
@@ -32,6 +41,10 @@ public class DashboardFragment extends Fragment {
         
         // Initialize ViewModel
         dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
+        loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
+        
+        // Get MainActivity reference
+        mainActivity = (MainActivity) requireActivity();
         
         // Initialize views
         initViews(view);
@@ -39,8 +52,10 @@ public class DashboardFragment extends Fragment {
         // Observe data
         observeViewModel();
         
-        // Load dashboard data
-        dashboardViewModel.loadDashboardData();
+        // Setup store selection for admin and load dashboard data
+        setupStoreSelection();
+        
+        // Note: loadDashboardData() is now called in setupStoreSelection()
     }
     
     private void initViews(View view) {
@@ -53,54 +68,154 @@ public class DashboardFragment extends Fragment {
         tvProfitMargin = view.findViewById(R.id.tvProfitMargin);
     }
     
+    private void setupStoreSelection() {
+        // Check if user is admin
+        if (loginViewModel.isAdmin()) {
+            Log.d(TAG, "User is admin, setting up store selection");
+            
+            // Setup toolbar title and subtitle
+            mainActivity.setToolbarTitle("Dashboard", "Semua Toko");
+            
+            // Setup store spinner in toolbar
+            loginViewModel.getStores().observe(getViewLifecycleOwner(), stores -> {
+                if (stores != null && !stores.isEmpty()) {
+                    mainActivity.setupToolbarStoreSpinner(stores, new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            Store selectedStore = (Store) parent.getItemAtPosition(position);
+                            Log.d(TAG, "Store selected: " + selectedStore.getName() + " (ID: " + selectedStore.getId() + ")");
+                            
+                            // Update toolbar subtitle
+                            mainActivity.setToolbarTitle("Dashboard", selectedStore.getName());
+                            
+                            // Load dashboard data for selected store
+                            dashboardViewModel.loadDashboardDataByStore(selectedStore.getId());
+                        }
+                        
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+                            // Load data for all stores (admin default)
+                            mainActivity.setToolbarTitle("Dashboard", "Semua Toko");
+                            dashboardViewModel.loadDashboardData();
+                        }
+                    });
+                }
+            });
+        } else {
+            Log.d(TAG, "User is not admin, using default store");
+            
+            // Get current user's store
+            loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+                if (user != null && user.getStoreId() != null) {
+                    Log.d(TAG, "setupStoreSelection: User storeId: " + user.getStoreId());
+                    
+                    // Get store name
+                    loginViewModel.getStoreById(user.getStoreId()).observe(getViewLifecycleOwner(), store -> {
+                        if (store != null) {
+                            mainActivity.setToolbarTitle("Dashboard", store.getName());
+                            Log.d(TAG, "setupStoreSelection: Store name: " + store.getName());
+                            
+                            // Load dashboard data for user's store
+                            dashboardViewModel.loadDashboardDataByStore(user.getStoreId());
+                        }
+                    });
+                } else {
+                    Log.d(TAG, "setupStoreSelection: User has no storeId, loading all data");
+                    // Fallback: load all data
+                    dashboardViewModel.loadDashboardData();
+                }
+            });
+        }
+    }
+    
+    private void loadDashboardData() {
+        Log.d(TAG, "Loading dashboard data");
+        dashboardViewModel.loadDashboardData();
+    }
+    
     private void observeViewModel() {
         // Observe total revenue
         dashboardViewModel.getTotalRevenue().observe(getViewLifecycleOwner(), revenue -> {
+            Log.d(TAG, "observeViewModel: Total revenue updated: " + revenue);
             if (revenue != null) {
                 tvTotalRevenue.setText(id.tugas.pos.utils.CurrencyUtils.formatCurrency(revenue));
+            } else {
+                tvTotalRevenue.setText(id.tugas.pos.utils.CurrencyUtils.formatCurrency(0.0));
             }
         });
         
         // Observe today's sales
         dashboardViewModel.getTodaySales().observe(getViewLifecycleOwner(), sales -> {
+            Log.d(TAG, "observeViewModel: Today sales updated: " + sales);
             if (sales != null) {
                 tvTodaySales.setText(id.tugas.pos.utils.CurrencyUtils.formatCurrency(sales));
+            } else {
+                tvTodaySales.setText(id.tugas.pos.utils.CurrencyUtils.formatCurrency(0.0));
             }
         });
         
         // Observe total products
         dashboardViewModel.getTotalProducts().observe(getViewLifecycleOwner(), count -> {
+            Log.d(TAG, "observeViewModel: Total products updated: " + count);
             if (count != null) {
                 tvTotalProducts.setText(String.valueOf(count));
+            } else {
+                tvTotalProducts.setText("0");
             }
         });
         
         // Observe low stock count
         dashboardViewModel.getLowStockCount().observe(getViewLifecycleOwner(), count -> {
+            Log.d(TAG, "observeViewModel: Low stock count updated: " + count);
             if (count != null) {
                 tvLowStockCount.setText(String.valueOf(count));
+            } else {
+                tvLowStockCount.setText("0");
             }
         });
         
         // Observe pending transactions
         dashboardViewModel.getPendingTransactions().observe(getViewLifecycleOwner(), count -> {
+            Log.d(TAG, "observeViewModel: Pending transactions updated: " + count);
             if (count != null) {
                 tvPendingTransactions.setText(String.valueOf(count));
+            } else {
+                tvPendingTransactions.setText("0");
             }
         });
         
         // Observe total expenses
         dashboardViewModel.getTotalExpenses().observe(getViewLifecycleOwner(), expenses -> {
+            Log.d(TAG, "observeViewModel: Total expenses updated: " + expenses);
             if (expenses != null) {
                 tvTotalExpenses.setText(id.tugas.pos.utils.CurrencyUtils.formatCurrency(expenses));
+            } else {
+                tvTotalExpenses.setText(id.tugas.pos.utils.CurrencyUtils.formatCurrency(0.0));
             }
         });
         
         // Observe profit margin
         dashboardViewModel.getProfitMargin().observe(getViewLifecycleOwner(), margin -> {
+            Log.d(TAG, "observeViewModel: Profit margin updated: " + margin);
             if (margin != null) {
                 tvProfitMargin.setText(id.tugas.pos.utils.CurrencyUtils.formatPercentage(margin));
+            } else {
+                tvProfitMargin.setText("0%");
             }
         });
+    }
+    
+    // Method untuk force refresh dashboard data
+    public void refreshDashboardData() {
+        Log.d(TAG, "refreshDashboardData: Force refreshing dashboard data");
+        dashboardViewModel.forceRefreshAllData();
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: Refreshing dashboard data");
+        // Refresh data when fragment becomes active
+        dashboardViewModel.forceRefreshAllData();
     }
 } 

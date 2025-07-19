@@ -11,6 +11,8 @@ import androidx.room.Update;
 import java.util.List;
 
 import id.tugas.pos.data.model.TransactionItem;
+import id.tugas.pos.ui.report.LaporanStokItem;
+import id.tugas.pos.ui.report.LaporanTransaksiItem;
 
 @Dao
 public interface TransactionItemDao {
@@ -57,6 +59,16 @@ public interface TransactionItemDao {
     
     @Query("SELECT productId, SUM(quantity) as totalQuantity FROM transaction_items GROUP BY productId ORDER BY totalQuantity DESC LIMIT :limit")
     LiveData<List<ProductSalesSummary>> getTopSellingProducts(int limit);
+    
+    @Query("SELECT productName as namaProduk, SUM(quantity) as jumlahTerjual, SUM(subtotal) as totalHarga " +
+           "FROM transaction_items " +
+           "WHERE createdAt BETWEEN :startDate AND :endDate " +
+           "GROUP BY productName")
+    List<LaporanTransaksiItem> getLaporanTransaksi(long startDate, long endDate);
+    
+    @Query("SELECT productName as namaProduk, 0 as stokMasuk, SUM(quantity) as stokKeluar, 0 as stokTersisa " +
+           "FROM transaction_items WHERE createdAt BETWEEN :startDate AND :endDate GROUP BY productId")
+    List<LaporanStokItem> getLaporanStokKeluar(long startDate, long endDate);
     
     public static class ProductSalesSummary {
         public int productId;

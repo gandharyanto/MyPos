@@ -84,4 +84,13 @@ public interface TransactionDao {
     
     @Query("SELECT * FROM transactions WHERE storeId = :storeId ORDER BY createdAt DESC")
     LiveData<List<Transaction>> getAllTransactionsByStore(int storeId);
+    
+    @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND storeId = :storeId")
+    LiveData<Double> getTotalRevenueByStore(int storeId);
+    
+    @Query("SELECT COUNT(*) FROM transactions WHERE status = 'PENDING' AND storeId = :storeId")
+    LiveData<Integer> getPendingTransactionCountByStore(int storeId);
+    
+    @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND createdAt BETWEEN :startDate AND :endDate AND storeId = :storeId")
+    LiveData<Double> getRevenueByDateRangeAndStore(long startDate, long endDate, int storeId);
 } 

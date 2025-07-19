@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+import java.text.SimpleDateFormat
+import java.util.*
+
 android {
     namespace = "id.tugas.pos"
     compileSdk = 35
@@ -11,7 +14,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -20,6 +23,31 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            isDebuggable = true
+        }
+    }
+    
+    // Custom APK naming
+    // Format: MyPos-{BuildType}-v{VersionName}-{VersionCode}-{Timestamp}.apk
+    // Example: MyPos-Debug-v1.0-1-20241219-143022.apk
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.forEach { output ->
+            val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(Date())
+            val buildType = variant.buildType.name
+            val versionName = defaultConfig.versionName
+            val versionCode = defaultConfig.versionCode
+            
+            // Custom naming pattern
+            val outputFileName = when (buildType) {
+                "debug" -> "MyPos-Debug-v${versionName}-${versionCode}-$timestamp.apk"
+                "release" -> "MyPos-Release-v${versionName}-${versionCode}-$timestamp.apk"
+                else -> "MyPos-${variant.name}-v${versionName}-$timestamp.apk"
+            }
+            
+            (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = outputFileName
         }
     }
     compileOptions {
