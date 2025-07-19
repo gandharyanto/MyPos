@@ -8,3 +8,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+pos_database
+pos_database-shm
+pos_database-wal
