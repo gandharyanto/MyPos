@@ -184,8 +184,18 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
             android.util.Log.d("ProdukFragment", "Selected storeId: " + storeId);
             if (storeId != null) {
+                // Debug: cek semua produk tanpa filter storeId
+                viewModel.getAllProducts().observe(getViewLifecycleOwner(), allProductsDebug -> {
+                    android.util.Log.d("ProdukFragment", "Total produk di database: " + (allProductsDebug != null ? allProductsDebug.size() : 0));
+                    if (allProductsDebug != null && !allProductsDebug.isEmpty()) {
+                        for (id.tugas.pos.data.model.Product product : allProductsDebug) {
+                            android.util.Log.d("ProdukFragment", "Produk: " + product.getName() + " (ID: " + product.getId() + ", StoreID: " + product.getStoreId() + ")");
+                        }
+                    }
+                });
+                
                 viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
-                    android.util.Log.d("ProdukFragment", "Jumlah produk: " + (products != null ? products.size() : 0));
+                    android.util.Log.d("ProdukFragment", "Jumlah produk untuk storeId " + storeId + ": " + (products != null ? products.size() : 0));
                     allProducts = products;
                     adapter.submitList(products);
                 });
@@ -205,7 +215,11 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void showAddProductDialog() {
-        AddEditProductDialog dialog = AddEditProductDialog.newInstance(null);
+        // Get current storeId
+        Integer currentStoreId = storeViewModel.getSelectedStoreId().getValue();
+        android.util.Log.d("ProdukFragment", "Creating dialog with storeId: " + currentStoreId);
+        
+        AddEditProductDialog dialog = AddEditProductDialog.newInstance(null, currentStoreId);
         dialog.setOnProductSavedListener(product -> {
             viewModel.addProduct(product);
             Toast.makeText(requireContext(), "Produk berhasil ditambahkan", Toast.LENGTH_SHORT).show();
@@ -214,7 +228,10 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void showEditProductDialog(Product product) {
-        AddEditProductDialog dialog = AddEditProductDialog.newInstance(product);
+        // Get current storeId
+        Integer currentStoreId = storeViewModel.getSelectedStoreId().getValue();
+        
+        AddEditProductDialog dialog = AddEditProductDialog.newInstance(product, currentStoreId);
         dialog.setOnProductSavedListener(updatedProduct -> {
             viewModel.updateProduct(updatedProduct);
             Toast.makeText(requireContext(), "Produk berhasil diperbarui", Toast.LENGTH_SHORT).show();

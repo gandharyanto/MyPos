@@ -63,11 +63,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            android:hint="Harga"
+            android:hint="Harga Modal"
             style="@style/OutlinedTextInputStyle">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_product_price"
+                android:id="@+id/et_product_cost"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
@@ -81,6 +81,44 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
+            android:hint="Harga Jual"
+            style="@style/OutlinedTextInputStyle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_product_price"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:maxLines="1"
+                android:textColor="@color/black" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_profit_margin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Margin: -"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_info_tag"
+        android:padding="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
             android:hint="Stok"
             style="@style/OutlinedTextInputStyle">
 
@@ -90,6 +128,25 @@
                 android:layout_height="wrap_content"
                 android:inputType="number"
                 android:maxLines="1"
+                android:textColor="@color/black" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:hint="Satuan"
+            style="@style/OutlinedTextInputStyle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_product_unit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1"
+                android:text="pcs"
                 android:textColor="@color/black" />
 
         </com.google.android.material.textfield.TextInputLayout>
