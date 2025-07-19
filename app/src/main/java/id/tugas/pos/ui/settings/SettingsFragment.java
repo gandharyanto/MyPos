@@ -12,6 +12,8 @@ import android.text.TextUtils;
 import com.google.android.material.button.MaterialButton;
 import androidx.lifecycle.ViewModelProvider;
 import id.tugas.pos.viewmodel.LoginViewModel;
+import id.tugas.pos.viewmodel.StoreViewModel;
+import id.tugas.pos.data.model.Store;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +24,8 @@ import id.tugas.pos.R;
 public class SettingsFragment extends Fragment {
     
     private LoginViewModel loginViewModel;
+    private StoreViewModel storeViewModel;
+    private AlertDialog currentDialog; // Tambahkan field untuk menyimpan dialog
 
     @Nullable
     @Override
@@ -29,12 +33,26 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
         
         TextView tvTitle = view.findViewById(R.id.tvTitle);
-
         tvTitle.setText("Pengaturan Aplikasi");
 
         loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
+        storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
+        
         MaterialButton btnChangePassword = view.findViewById(R.id.btnChangePassword);
         btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
+        
+        // Tambah tombol manajemen toko (hanya untuk admin)
+        MaterialButton btnManageStore = view.findViewById(R.id.btnManageStore);
+        if (btnManageStore != null) {
+            loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+                if (user != null && user.isAdmin()) {
+                    btnManageStore.setVisibility(View.VISIBLE);
+                    btnManageStore.setOnClickListener(v -> showAddStoreDialog());
+                } else {
+                    btnManageStore.setVisibility(View.GONE);
+                }
+            });
+        }
         
         return view;
     }
@@ -44,10 +62,11 @@ public class SettingsFragment extends Fragment {
         EditText etOldPassword = dialogView.findViewById(R.id.etOldPassword);
         EditText etNewPassword = dialogView.findViewById(R.id.etNewPassword);
         EditText etConfirmPassword = dialogView.findViewById(R.id.etConfirmPassword);
-        new AlertDialog.Builder(getContext())
+        
+        AlertDialog dialog = new AlertDialog.Builder(getContext(), R.style.AlertDialogStyle)
             .setTitle("Ubah Password")
             .setView(dialogView)
-            .setPositiveButton("Simpan", (dialog, which) -> {
+            .setPositiveButton("Simpan", (dialogInterface, which) -> {
                 String oldPass = etOldPassword.getText().toString().trim();
                 String newPass = etNewPassword.getText().toString().trim();
                 String confirmPass = etConfirmPassword.getText().toString().trim();
@@ -66,8 +85,80 @@ public class SettingsFragment extends Fragment {
                         Toast.makeText(getContext(), "Password lama salah", Toast.LENGTH_SHORT).show();
                     }
                 });
+                currentDialog = null;
             })
-            .setNegativeButton("Batal", null)
-            .show();
+            .setNegativeButton("Batal", (dialogInterface, which) -> {
+                currentDialog = null;
+            })
+            .create();
+        
+        // Simpan dialog untuk cleanup
+        currentDialog = dialog;
+        dialog.show();
+    }
+
+    private void showAddStoreDialog() {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_tambah_toko, null, false);
+        EditText etStoreName = dialogView.findViewById(R.id.etStoreName);
+        EditText etStoreAddress = dialogView.findViewById(R.id.etStoreAddress);
+        EditText etStorePhone = dialogView.findViewById(R.id.etStorePhone);
+        MaterialButton btnSave = dialogView.findViewById(R.id.btnSave);
+        MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext(), R.style.AlertDialogStyle)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+        
+        // Simpan dialog untuk cleanup
+        currentDialog = dialog;
+
+        btnCancel.setOnClickListener(v -> {
+            dialog.dismiss();
+            currentDialog = null;
+        });
+        btnSave.setOnClickListener(v -> {
+            String storeName = etStoreName.getText().toString().trim();
+            String storeAddress = etStoreAddress.getText().toString().trim();
+            String storePhone = etStorePhone.getText().toString().trim();
+            
+            // Validasi
+            if (TextUtils.isEmpty(storeName)) {
+                etStoreName.setError("Nama toko wajib diisi");
+                return;
+            }
+            if (TextUtils.isEmpty(storeAddress)) {
+                etStoreAddress.setError("Alamat toko wajib diisi");
+                return;
+            }
+            
+            // Simpan toko baru
+            Store newStore = new Store(storeName, storeAddress, storePhone);
+            storeViewModel.addStore(newStore);
+            Toast.makeText(getContext(), "Toko berhasil ditambahkan", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+            currentDialog = null;
+        });
+        dialog.show();
+    }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Dismiss dialog jika masih terbuka untuk mencegah window leak
+        if (currentDialog != null && currentDialog.isShowing()) {
+            currentDialog.dismiss();
+            currentDialog = null;
+        }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Dismiss dialog jika masih terbuka untuk mencegah window leak
+        if (currentDialog != null && currentDialog.isShowing()) {
+            currentDialog.dismiss();
+            currentDialog = null;
+        }
     }
 } 

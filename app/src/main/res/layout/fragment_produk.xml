@@ -19,6 +19,25 @@
             android:textColor="@color/primary"
             android:layout_marginBottom="16dp" />
 
+        <Spinner
+            android:id="@+id/spinner_store"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            android:background="@drawable/bg_spinner"
+            android:padding="12dp" />
+
+        <TextView
+            android:id="@+id/tv_store_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pilih Toko:"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
         <SearchView
             android:id="@+id/search_view_products"
             android:layout_width="match_parent"

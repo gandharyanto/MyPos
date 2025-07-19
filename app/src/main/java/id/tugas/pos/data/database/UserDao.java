@@ -33,6 +33,9 @@ public interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email AND password = :password AND isActive = 1")
     LiveData<User> loginByEmail(String email, String password);
     
+    @Query("SELECT * FROM users WHERE (username = :identifier OR email = :identifier) AND password = :password AND isActive = 1")
+    LiveData<User> loginWithEmailOrUsername(String identifier, String password);
+    
     @Query("SELECT * FROM users WHERE username = :username")
     LiveData<User> getUserByUsername(String username);
 
@@ -53,4 +56,16 @@ public interface UserDao {
     
     @Query("SELECT * FROM users WHERE isActive = 1")
     List<User> getAllActiveUsersSync();
+    
+    @Query("SELECT COUNT(*) FROM users WHERE username = :username AND isActive = 1")
+    int checkUsernameExists(String username);
+    
+    @Query("SELECT COUNT(*) FROM users WHERE email = :email AND isActive = 1")
+    int checkEmailExists(String email);
+    
+    @Query("SELECT * FROM users WHERE email = :email AND isActive = 1")
+    List<User> getUsersByEmail(String email);
+    
+    @Query("SELECT * FROM users WHERE username = :username AND isActive = 1")
+    List<User> getUsersByUsername(String username);
 } 

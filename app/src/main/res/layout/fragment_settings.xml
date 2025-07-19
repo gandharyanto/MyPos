@@ -27,5 +27,15 @@
             android:icon="@drawable/ic_lock"
             android:iconTint="@color/colorPrimary" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnManageStore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manajemen Toko"
+            android:layout_marginTop="16dp"
+            android:icon="@drawable/ic_inventory"
+            android:iconTint="@color/colorPrimary"
+            android:visibility="gone" />
+
     </LinearLayout>
 </ScrollView> 

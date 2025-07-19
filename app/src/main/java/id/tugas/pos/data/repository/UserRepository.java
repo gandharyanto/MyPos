@@ -54,6 +54,11 @@ public class UserRepository {
         return userDao.loginByEmail(email, password);
     }
     
+    // Login dengan email atau username
+    public LiveData<User> loginWithEmailOrUsername(String identifier, String password) {
+        return userDao.loginWithEmailOrUsername(identifier, password);
+    }
+    
     // Get user by username
     public LiveData<User> getUserByUsername(String username) {
         return userDao.getUserByUsername(username);
@@ -87,6 +92,26 @@ public class UserRepository {
     // Get all active users synchronously
     public List<User> getAllActiveUsersSync() {
         return userDao.getAllActiveUsersSync();
+    }
+    
+    // Check if username exists
+    public boolean isUsernameExists(String username) {
+        return userDao.checkUsernameExists(username) > 0;
+    }
+    
+    // Check if email exists
+    public boolean isEmailExists(String email) {
+        return userDao.checkEmailExists(email) > 0;
+    }
+    
+    // Get users by email (for duplicate checking)
+    public List<User> getUsersByEmail(String email) {
+        return userDao.getUsersByEmail(email);
+    }
+    
+    // Get users by username (for duplicate checking)
+    public List<User> getUsersByUsername(String username) {
+        return userDao.getUsersByUsername(username);
     }
     
     // AsyncTask classes

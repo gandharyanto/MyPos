@@ -9,6 +9,7 @@ import android.widget.SearchView;
 import android.widget.Toast;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -42,6 +43,8 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     private LoginViewModel loginViewModel;
     private StoreViewModel storeViewModel;
     private Spinner spinnerStore;
+    private TextView tvStoreLabel; // Tambahkan field untuk store label
+    private AlertDialog currentDialog; // Tambahkan field untuk menyimpan dialog
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -67,7 +70,20 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         recyclerView = view.findViewById(R.id.recycler_view_products);
         searchView = view.findViewById(R.id.search_view_products);
         fabAdd = view.findViewById(R.id.fab_add_product);
-        spinnerStore = view.findViewById(R.id.spinner_store); // Tambahkan spinner di layout
+        spinnerStore = view.findViewById(R.id.spinner_store);
+        tvStoreLabel = view.findViewById(R.id.tv_store_label);
+        
+        // Null check untuk spinnerStore
+        if (spinnerStore == null) {
+            // Log warning jika spinner tidak ditemukan
+            android.util.Log.w("ProdukFragment", "spinner_store not found in layout");
+        }
+        
+        // Null check untuk tvStoreLabel
+        if (tvStoreLabel == null) {
+            // Log warning jika label tidak ditemukan
+            android.util.Log.w("ProdukFragment", "tv_store_label not found in layout");
+        }
     }
 
     private void setupViewModel() {
@@ -101,25 +117,45 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void setupStoreDropdown() {
+        // Null check untuk spinnerStore
+        if (spinnerStore == null) {
+            return;
+        }
+        
         loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
             if (user != null && user.isAdmin()) {
-                spinnerStore.setVisibility(View.VISIBLE);
+                // Tampilkan spinner dan label untuk admin
+                if (spinnerStore != null) {
+                    spinnerStore.setVisibility(View.VISIBLE);
+                }
+                if (tvStoreLabel != null) {
+                    tvStoreLabel.setVisibility(View.VISIBLE);
+                }
+                
                 storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
-                    ArrayAdapter<Store> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, stores);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    spinnerStore.setAdapter(adapter);
-                    spinnerStore.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                            Store selected = stores.get(position);
-                            storeViewModel.setSelectedStoreId(selected.getId());
-                        }
-                        @Override
-                        public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-                    });
+                    if (spinnerStore != null) {
+                        ArrayAdapter<Store> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, stores);
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        spinnerStore.setAdapter(adapter);
+                        spinnerStore.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                                Store selected = stores.get(position);
+                                storeViewModel.setSelectedStoreId(selected.getId());
+                            }
+                            @Override
+                            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                        });
+                    }
                 });
             } else {
-                spinnerStore.setVisibility(View.GONE);
+                // Sembunyikan spinner dan label untuk user biasa
+                if (spinnerStore != null) {
+                    spinnerStore.setVisibility(View.GONE);
+                }
+                if (tvStoreLabel != null) {
+                    tvStoreLabel.setVisibility(View.GONE);
+                }
             }
         });
     }
@@ -181,15 +217,22 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void showDeleteConfirmationDialog(Product product) {
-        new AlertDialog.Builder(requireContext())
+        AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.AlertDialogStyle)
                 .setTitle("Hapus Produk")
                 .setMessage("Apakah Anda yakin ingin menghapus produk \"" + product.getName() + "\"?")
-                .setPositiveButton("Hapus", (dialog, which) -> {
+                .setPositiveButton("Hapus", (dialogInterface, which) -> {
                     viewModel.deleteProduct(product);
                     Toast.makeText(requireContext(), "Produk berhasil dihapus", Toast.LENGTH_SHORT).show();
+                    currentDialog = null;
                 })
-                .setNegativeButton("Batal", null)
-                .show();
+                .setNegativeButton("Batal", (dialogInterface, which) -> {
+                    currentDialog = null;
+                })
+                .create();
+        
+        // Simpan dialog untuk cleanup
+        currentDialog = dialog;
+        dialog.show();
     }
 
     @Override
@@ -200,5 +243,25 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     @Override
     public void onProductLongClick(Product product) {
         showDeleteConfirmationDialog(product);
+    }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Dismiss dialog jika masih terbuka untuk mencegah window leak
+        if (currentDialog != null && currentDialog.isShowing()) {
+            currentDialog.dismiss();
+            currentDialog = null;
+        }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Dismiss dialog jika masih terbuka untuk mencegah window leak
+        if (currentDialog != null && currentDialog.isShowing()) {
+            currentDialog.dismiss();
+            currentDialog = null;
+        }
     }
 } 

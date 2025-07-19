@@ -14,12 +14,17 @@ import com.google.gson.Gson;
 import id.tugas.pos.data.model.User;
 import id.tugas.pos.data.repository.UserRepository;
 
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class LoginViewModel extends AndroidViewModel {
     
     private UserRepository userRepository;
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private MutableLiveData<User> currentUser = new MutableLiveData<>();
+    private ExecutorService executorService;
     
     private static final String PREFS_NAME = "session";
     private static final String KEY_USER_ID = "userId";
@@ -30,6 +35,7 @@ public class LoginViewModel extends AndroidViewModel {
         super(application);
         userRepository = new UserRepository(application);
         this.context = application.getApplicationContext();
+        this.executorService = Executors.newSingleThreadExecutor();
         // Load session if exists
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         int userId = prefs.getInt(KEY_USER_ID, -1);
@@ -48,10 +54,10 @@ public class LoginViewModel extends AndroidViewModel {
         }
     }
     
-    public void login(String username, String password) {
-        Log.d(TAG, "login called with username: " + username);
-        if (username == null || username.trim().isEmpty()) {
-            errorMessage.setValue("Username tidak boleh kosong");
+    public void login(String identifier, String password) {
+        Log.d(TAG, "login called with identifier: " + identifier);
+        if (identifier == null || identifier.trim().isEmpty()) {
+            errorMessage.setValue("Username/Email tidak boleh kosong");
             return;
         }
         
@@ -63,8 +69,8 @@ public class LoginViewModel extends AndroidViewModel {
         isLoading.setValue(true);
         errorMessage.setValue(null);
         
-        // In a real app, you would hash the password before comparing
-        LiveData<User> userLiveData = userRepository.login(username.trim(), password);
+        // Login dengan email atau username
+        LiveData<User> userLiveData = userRepository.loginWithEmailOrUsername(identifier.trim(), password);
         userLiveData.observeForever(user -> {
             Log.d(TAG, "login: user loaded: " + user);
             if (user != null) {
@@ -78,7 +84,7 @@ public class LoginViewModel extends AndroidViewModel {
                 isLoading.setValue(false);
             } else {
                 Log.d(TAG, "login: user is null");
-                errorMessage.setValue("Username atau password salah");
+                errorMessage.setValue("Username/Email atau password salah");
                 isLoading.setValue(false);
             }
             userLiveData.removeObserver(user1 -> {});
@@ -94,13 +100,70 @@ public class LoginViewModel extends AndroidViewModel {
     }
     
     public void createDefaultAdmin() {
-        // Admin utama dengan email aidilfitriyoka2812@gmail.com
-        User admin = new User("admin", "aidilfitriyoka2812@gmail.com", "admin123", "Administrator", "ADMIN");
-        userRepository.insert(admin);
-        
-        // User biasa untuk testing
-        User user = new User("user", "user123", "Cashier", "USER");
-        userRepository.insert(user);
+        // Jalankan operasi database di background thread
+        executorService.execute(() -> {
+            // Cek apakah admin sudah ada
+            if (!userRepository.isEmailExists("aidilfitriyoka2812@gmail.com")) {
+                // Admin utama dengan email aidilfitriyoka2812@gmail.com dan username admin
+                User admin = new User("admin", "aidilfitriyoka2812@gmail.com", "admin123", "Administrator", "ADMIN");
+                userRepository.insert(admin);
+            }
+            
+            // Cek apakah user testing sudah ada
+            if (!userRepository.isUsernameExists("user")) {
+                // User biasa untuk testing dengan email user@example.com
+                User user = new User("user", "user@example.com", "user123", "Cashier", "USER");
+                userRepository.insert(user);
+            }
+        });
+    }
+
+    public void initializeDatabaseIfNeeded() {
+        // Jalankan operasi database di background thread
+        executorService.execute(() -> {
+            // Cek apakah database sudah diinisialisasi dengan mengecek jumlah user
+            List<User> existingUsers = userRepository.getAllActiveUsersSync();
+            if (existingUsers == null || existingUsers.isEmpty()) {
+                // Database kosong, buat user default
+                createDefaultAdmin();
+            } else {
+                // Cek dan bersihkan duplikat jika ada
+                cleanupDuplicateUsers(existingUsers);
+            }
+        });
+    }
+
+    private void cleanupDuplicateUsers(List<User> users) {
+        // Jalankan operasi database di background thread
+        executorService.execute(() -> {
+            // Cek duplikat berdasarkan email dan username
+            for (int i = 0; i < users.size(); i++) {
+                for (int j = i + 1; j < users.size(); j++) {
+                    User user1 = users.get(i);
+                    User user2 = users.get(j);
+                    
+                    // Hapus duplikat berdasarkan email
+                    if (user1.getEmail() != null && user1.getEmail().equals(user2.getEmail())) {
+                        // Hapus user yang lebih baru (ID lebih besar)
+                        if (user1.getId() > user2.getId()) {
+                            userRepository.delete(user1);
+                        } else {
+                            userRepository.delete(user2);
+                        }
+                    }
+                    
+                    // Hapus duplikat berdasarkan username
+                    if (user1.getUsername() != null && user1.getUsername().equals(user2.getUsername())) {
+                        // Hapus user yang lebih baru (ID lebih besar)
+                        if (user1.getId() > user2.getId()) {
+                            userRepository.delete(user1);
+                        } else {
+                            userRepository.delete(user2);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public void createAdminWithStore(String email, String password, String fullName, int storeId) {
@@ -110,45 +173,17 @@ public class LoginViewModel extends AndroidViewModel {
             return;
         }
         
-        User admin = new User("admin_" + storeId, email, password, fullName, "ADMIN");
-        admin.setStoreId(storeId); // Set storeId untuk admin
-        userRepository.insert(admin);
-    }
-
-    public void loginWithEmail(String email, String password) {
-        Log.d(TAG, "loginWithEmail called with email: " + email);
-        if (email == null || email.trim().isEmpty()) {
-            errorMessage.setValue("Email tidak boleh kosong");
-            return;
-        }
-        
-        if (password == null || password.trim().isEmpty()) {
-            errorMessage.setValue("Password tidak boleh kosong");
-            return;
-        }
-        
-        isLoading.setValue(true);
-        errorMessage.setValue(null);
-        
-        // Login menggunakan email untuk admin
-        LiveData<User> userLiveData = userRepository.loginByEmail(email.trim(), password);
-        userLiveData.observeForever(user -> {
-            Log.d(TAG, "loginWithEmail: user loaded: " + user);
-            if (user != null) {
-                currentUser.setValue(user);
-                Log.d(TAG, "loginWithEmail: currentUser set to: " + user);
-                // Simpan session ke SharedPreferences
-                SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                prefs.edit().putInt(KEY_USER_ID, user.getId()).apply();
-                // Update last login time
-                userRepository.updateLastLogin(user.getId(), System.currentTimeMillis());
-                isLoading.setValue(false);
-            } else {
-                Log.d(TAG, "loginWithEmail: user is null");
-                errorMessage.setValue("Email atau password salah");
-                isLoading.setValue(false);
+        // Jalankan operasi database di background thread
+        executorService.execute(() -> {
+            // Cek apakah admin dengan email ini sudah ada
+            if (userRepository.isEmailExists(email)) {
+                errorMessage.postValue("Admin dengan email ini sudah ada");
+                return;
             }
-            userLiveData.removeObserver(user1 -> {});
+            
+            User admin = new User("admin_" + storeId, email, password, fullName, "ADMIN");
+            admin.setStoreId(storeId); // Set storeId untuk admin
+            userRepository.insert(admin);
         });
     }
     
@@ -195,17 +230,29 @@ public class LoginViewModel extends AndroidViewModel {
             callback.onResult(false);
             return;
         }
-        // Cek password lama
-        if (!user.getPassword().equals(oldPassword)) {
-            callback.onResult(false);
-            return;
-        }
-        user.setPassword(newPassword);
-        userRepository.update(user);
-        callback.onResult(true);
+        
+        // Jalankan operasi database di background thread
+        executorService.execute(() -> {
+            // Cek password lama
+            if (!user.getPassword().equals(oldPassword)) {
+                callback.onResult(false);
+                return;
+            }
+            user.setPassword(newPassword);
+            userRepository.update(user);
+            callback.onResult(true);
+        });
     }
 
     public interface ChangePasswordCallback {
         void onResult(boolean success);
+    }
+    
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+        }
     }
 } 

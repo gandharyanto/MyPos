@@ -87,10 +87,10 @@ public class LoginActivity extends AppCompatActivity {
     }
     
     private void performLogin() {
-        String username = etUsername.getText().toString().trim();
+        String identifier = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         
-        if (username.isEmpty()) {
+        if (identifier.isEmpty()) {
             etUsername.setError("Username/Email tidak boleh kosong");
             return;
         }
@@ -100,18 +100,8 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
         
-        // Cek apakah input adalah email (untuk admin)
-        if (isValidEmail(username)) {
-            // Login dengan email untuk admin
-            loginViewModel.loginWithEmail(username, password);
-        } else {
-            // Login dengan username untuk user biasa
-            loginViewModel.login(username, password);
-        }
-    }
-    
-    private boolean isValidEmail(String email) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+        // Login dengan email atau username (tidak perlu membedakan admin/user)
+        loginViewModel.login(identifier, password);
     }
     
     private void navigateToMainActivity() {
@@ -122,9 +112,8 @@ public class LoginActivity extends AppCompatActivity {
     }
     
     private void createDefaultUsers() {
-        // This will create default admin and user accounts
-        // In a real app, you might want to check if users already exist
-        loginViewModel.createDefaultAdmin();
+        // Initialize database dengan user default hanya jika database kosong
+        loginViewModel.initializeDatabaseIfNeeded();
     }
     
     @Override

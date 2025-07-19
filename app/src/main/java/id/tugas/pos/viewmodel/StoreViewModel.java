@@ -31,4 +31,18 @@ public class StoreViewModel extends AndroidViewModel {
     public void setSelectedStoreId(int storeId) {
         selectedStoreId.setValue(storeId);
     }
+
+    public void addStore(Store store) {
+        repository.addStore(store, new StoreRepository.OnStoreOperationListener() {
+            @Override
+            public void onSuccess() {
+                // Toko berhasil ditambahkan
+            }
+
+            @Override
+            public void onError(String message) {
+                // Handle error jika diperlukan
+            }
+        });
+    }
 } 

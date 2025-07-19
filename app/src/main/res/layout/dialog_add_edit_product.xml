@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="@color/white">
 
     <TextView
         android:id="@+id/tv_dialog_title"
@@ -12,15 +14,16 @@
         android:text="Tambah Produk"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:layout_marginBottom="16dp" />
+        android:textColor="@color/black"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:hint="Nama Produk"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/OutlinedTextInputStyle">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_product_name"
@@ -28,7 +31,7 @@
             android:layout_height="wrap_content"
             android:inputType="text"
             android:maxLines="1"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/black" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -37,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:hint="Kode Produk"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/OutlinedTextInputStyle">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_product_code"
@@ -45,7 +48,7 @@
             android:layout_height="wrap_content"
             android:inputType="textCapCharacters"
             android:maxLines="1"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/black" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -61,7 +64,7 @@
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:hint="Harga"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            style="@style/OutlinedTextInputStyle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_product_price"
@@ -69,7 +72,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
                 android:maxLines="1"
-                android:textColor="@android:color/black" />
+                android:textColor="@color/black" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -79,7 +82,7 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:hint="Stok"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            style="@style/OutlinedTextInputStyle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_product_stock"
@@ -87,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="number"
                 android:maxLines="1"
-                android:textColor="@android:color/black" />
+                android:textColor="@color/black" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -98,7 +101,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:hint="Kategori"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/OutlinedTextInputStyle">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_product_category"
@@ -106,7 +109,7 @@
             android:layout_height="wrap_content"
             android:inputType="text"
             android:maxLines="1"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/black" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -115,17 +118,17 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cancel_product"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:text="Batal"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/black"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_product"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -133,7 +136,7 @@
             android:layout_marginStart="8dp"
             android:text="Simpan"
             android:textColor="@color/white"
-            android:backgroundTint="@color/primary" />
+            android:backgroundTint="@color/colorPrimary" />
 
     </LinearLayout>
 

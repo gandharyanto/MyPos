@@ -2,8 +2,15 @@ package id.tugas.pos.data.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.Index;
 
-@Entity(tableName = "users")
+@Entity(
+    tableName = "users",
+    indices = {
+        @Index(value = {"username"}, unique = true),
+        @Index(value = {"email"}, unique = true)
+    }
+)
 public class User {
     @PrimaryKey(autoGenerate = true)
     private int id;

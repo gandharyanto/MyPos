@@ -16,7 +16,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tambah User Baru"
+            android:text="Tambah Toko Baru"
             android:textSize="20sp"
             android:textStyle="bold"
             android:gravity="center"
@@ -27,43 +27,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:hint="Nama Lengkap"
+            android:hint="Nama Toko"
             style="@style/OutlinedTextInputStyle">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etFullName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPersonName"
-                android:textColor="@color/black" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Email"
-            style="@style/OutlinedTextInputStyle">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textEmailAddress"
-                android:textColor="@color/black" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Username"
-            style="@style/OutlinedTextInputStyle">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etUsername"
+                android:id="@+id/etStoreName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
@@ -75,31 +43,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:hint="Password"
-            style="@style/OutlinedTextInputStyle"
-            app:passwordToggleEnabled="true">
+            android:hint="Alamat Toko"
+            style="@style/OutlinedTextInputStyle">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPassword"
+                android:id="@+id/etStoreAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:textColor="@color/black" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Role"
-            style="@style/DropdownStyle">
-
-            <AutoCompleteTextView
-                android:id="@+id/spinnerRole"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
+                android:inputType="textMultiLine"
+                android:minLines="2"
                 android:textColor="@color/black" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -108,14 +60,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:hint="Toko"
-            style="@style/DropdownStyle">
+            android:hint="Nomor Telepon (Opsional)"
+            style="@style/OutlinedTextInputStyle">
 
-            <AutoCompleteTextView
-                android:id="@+id/spinnerStore"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etStorePhone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="none"
+                android:inputType="phone"
                 android:textColor="@color/black" />
 
         </com.google.android.material.textfield.TextInputLayout>

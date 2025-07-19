@@ -36,4 +36,24 @@ public class StoreRepository {
     public void delete(Store store) {
         new Thread(() -> storeDao.delete(store)).start();
     }
+
+    public void addStore(Store store, OnStoreOperationListener listener) {
+        new Thread(() -> {
+            try {
+                storeDao.insert(store);
+                if (listener != null) {
+                    listener.onSuccess();
+                }
+            } catch (Exception e) {
+                if (listener != null) {
+                    listener.onError(e.getMessage());
+                }
+            }
+        }).start();
+    }
+
+    public interface OnStoreOperationListener {
+        void onSuccess();
+        void onError(String message);
+    }
 } 
