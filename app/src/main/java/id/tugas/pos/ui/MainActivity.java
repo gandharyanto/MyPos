@@ -17,7 +17,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 
@@ -304,24 +303,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
-        
-        // Hide store spinner for non-admin users
-        if (!loginViewModel.isAdmin()) {
-            MenuItem storeSpinnerItem = menu.findItem(R.id.action_store_spinner);
-            if (storeSpinnerItem != null) {
-                storeSpinnerItem.setVisible(false);
-            }
-        }
-        
         return true;
-    }
-    
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
-            logout();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 } 

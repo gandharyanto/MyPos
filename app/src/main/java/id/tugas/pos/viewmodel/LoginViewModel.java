@@ -202,7 +202,23 @@ public class LoginViewModel extends AndroidViewModel {
     public LiveData<LoginResult> getLoginResult() { return loginResult; }
     
     public LiveData<List<Store>> getStores() {
-        return storeRepository.getAllStores();
+        MutableLiveData<List<Store>> liveData = new MutableLiveData<>();
+        storeRepository.getAllStores().observeForever(stores -> {
+            if (stores != null) {
+                Store allStore = new Store();
+                allStore.setId(-1);
+                allStore.setName("Semua Toko");
+                allStore.setAddress("");
+                allStore.setPhone("");
+                List<Store> newList = new java.util.ArrayList<>();
+                newList.add(allStore);
+                newList.addAll(stores);
+                liveData.postValue(newList);
+            } else {
+                liveData.postValue(null);
+            }
+        });
+        return liveData;
     }
     
     public LiveData<Store> getStoreById(int storeId) {

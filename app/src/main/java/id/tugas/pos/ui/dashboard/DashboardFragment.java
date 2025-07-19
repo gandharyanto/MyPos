@@ -88,13 +88,16 @@ public class DashboardFragment extends Fragment {
                             // Update toolbar subtitle
                             mainActivity.setToolbarTitle("Dashboard", selectedStore.getName());
                             
-                            // Load dashboard data for selected store
-                            dashboardViewModel.loadDashboardDataByStore(selectedStore.getId());
+                            // Jika pilih 'Semua Toko', load semua data
+                            if (selectedStore.getId() == -1) {
+                                dashboardViewModel.loadDashboardData();
+                            } else {
+                                dashboardViewModel.loadDashboardDataByStore(selectedStore.getId());
+                            }
                         }
                         
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {
-                            // Load data for all stores (admin default)
                             mainActivity.setToolbarTitle("Dashboard", "Semua Toko");
                             dashboardViewModel.loadDashboardData();
                         }
