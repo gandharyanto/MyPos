@@ -33,4 +33,9 @@ public class Store {
     public void setPhone(String phone) { this.phone = phone; }
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+    
+    @Override
+    public String toString() {
+        return name != null ? name : "Toko " + id;
+    }
 } 

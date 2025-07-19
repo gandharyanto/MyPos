@@ -34,6 +34,7 @@ import id.tugas.pos.ui.user.UserManagementFragment;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import android.util.Log;
 import android.widget.Spinner; // Tambahkan import untuk Spinner
+import id.tugas.pos.data.model.Store;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = "MainActivity";
@@ -44,7 +45,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView tvUserName, tvUserRole;
     private LoginViewModel loginViewModel;
     private User currentUser;
-    private Spinner toolbarStoreSpinner; // Tambahkan field untuk spinner toolbar
+    public Spinner spinnerStore;
+    public TextView labelStore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +62,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (user == null) {
                 Log.d(TAG, "MainActivity: currentUser is null, navigating to login");
                 navigateToLogin();
+            } else {
+                currentUser = user;
+                setupUserInfo();
+                
+                // Load default fragment setelah currentUser tersedia
+                if (savedInstanceState == null) {
+                    // Load default fragment based on user role
+                    if (loginViewModel.isAdmin()) {
+                        Log.d(TAG, "MainActivity: User is admin, loading Dashboard");
+                        loadFragment(new DashboardFragment());
+                        getSupportActionBar().setTitle("Dashboard");
+                    } else {
+                        Log.d(TAG, "MainActivity: User is not admin, loading Transaksi");
+                        loadFragment(new TransaksiFragment());
+                        getSupportActionBar().setTitle("Transaksi");
+                    }
+                }
             }
-            currentUser = user;
-            setupUserInfo();
-            
         });
         
         // Check if user is logged in (pakai SharedPreferences)
@@ -79,17 +95,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setupToolbar();
         setupNavigation();
 
-        // Load default fragment
-        if (savedInstanceState == null) {
-            // Load default fragment based on user role
-            if (loginViewModel.isAdmin()) {
-                loadFragment(new DashboardFragment());
-                getSupportActionBar().setTitle("Dashboard");
-            } else {
-                loadFragment(new TransaksiFragment());
-                getSupportActionBar().setTitle("Transaksi");
-            }
-        }
+        // HAPUS: Logic default fragment dari sini karena sudah dipindah ke observer
     }
     
     private void initViews() {
@@ -101,41 +107,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View headerView = navigationView.getHeaderView(0);
         tvUserName = headerView.findViewById(R.id.tvUserName);
         tvUserRole = headerView.findViewById(R.id.tvUserRole);
-    }
-    
-    // Method untuk mendapatkan spinner toolbar
-    public Spinner getToolbarStoreSpinner() {
-        if (toolbarStoreSpinner == null) {
-            // Find the menu item and get its action view
-            Menu menu = toolbar.getMenu();
-            MenuItem storeSpinnerItem = menu.findItem(R.id.action_store_spinner);
-            if (storeSpinnerItem != null && storeSpinnerItem.getActionView() != null) {
-                toolbarStoreSpinner = storeSpinnerItem.getActionView().findViewById(R.id.spinnerStore);
-            }
-        }
-        return toolbarStoreSpinner;
-    }
-    
-    // Method untuk mengatur spinner toolbar
-    public void setupToolbarStoreSpinner(java.util.List<id.tugas.pos.data.model.Store> stores, 
-                                       android.widget.AdapterView.OnItemSelectedListener listener) {
-        Spinner spinner = getToolbarStoreSpinner();
-        if (spinner != null && stores != null && !stores.isEmpty()) {
-            android.widget.ArrayAdapter<id.tugas.pos.data.model.Store> adapter = 
-                new android.widget.ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stores);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinner.setAdapter(adapter);
-            spinner.setOnItemSelectedListener(listener);
-        }
-    }
-    
-    // Method untuk clear spinner toolbar
-    public void clearToolbarStoreSpinner() {
-        Spinner spinner = getToolbarStoreSpinner();
-        if (spinner != null) {
-            spinner.setAdapter(null);
-            spinner.setOnItemSelectedListener(null);
-        }
+        
+        // Inisialisasi spinnerStore dan labelStore dari toolbar
+        spinnerStore = toolbar.findViewById(R.id.spinnerStore);
+        labelStore = toolbar.findViewById(R.id.labelStore);
     }
     
     private void setupToolbar() {
@@ -157,6 +132,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
     
+    // Method untuk setup spinner toolbar
+    public void setupToolbarStoreSpinner(
+            java.util.List<Store> stores,
+            android.widget.AdapterView.OnItemSelectedListener listener) {
+        if (spinnerStore != null && stores != null && !stores.isEmpty()) {
+            android.widget.ArrayAdapter<Store> adapter =
+                new android.widget.ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stores);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerStore.setAdapter(adapter);
+            spinnerStore.setOnItemSelectedListener(listener);
+        }
+    }
+    
     private void setupNavigation() {
         navigationView.setNavigationItemSelectedListener(this);
         
@@ -164,8 +152,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     
     private void setupUserInfo() {
-        String userName = currentUser != null ? currentUser.getUsername() : "Guest";
-        String userRole = (currentUser != null ? currentUser.getRole().equalsIgnoreCase("Administrator") : false) ? "Administrator" : "Cashier";
+        String userName = currentUser != null ? currentUser.getEmail() : "Guest";
+        String userRole = (currentUser != null ? currentUser.getRole().equalsIgnoreCase("admin") : false) ? "Administrator" : "Cashier";
         
         tvUserName.setText(userName);
         tvUserRole.setText(userRole);
@@ -213,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (getSupportActionBar() != null) {
             getSupportActionBar().setSubtitle(null);
         }
-        clearToolbarStoreSpinner();
+        // clearToolbarStoreSpinner(); // Hapus karena toolbarStoreSpinner sudah dihapus
         
         // Close drawer if open
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -301,9 +289,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
     
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return true;
-    }
+    // HAPUS: onCreateOptionsMenu method
 } 

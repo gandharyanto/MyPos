@@ -169,4 +169,5 @@
     
     <!-- Footer -->
     <string name="footer_copyright">© 2024 Kasir Kas Kecil. All rights reserved.</string>
+    <string name="prompt_pilih_tipe_pengeluaran">Pilih Tipe Pengeluaran</string>
 </resources>

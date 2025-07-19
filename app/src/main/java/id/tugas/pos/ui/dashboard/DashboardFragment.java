@@ -61,6 +61,19 @@ public class DashboardFragment extends Fragment {
         setupStoreSelection();
         
         // Note: loadDashboardData() is now called in setupStoreSelection()
+        if (loginViewModel.isAdmin()) {
+            mainActivity.spinnerStore.setVisibility(View.VISIBLE);
+            mainActivity.labelStore.setVisibility(View.VISIBLE);
+        }
+    }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (mainActivity != null) {
+            mainActivity.spinnerStore.setVisibility(View.GONE);
+            mainActivity.labelStore.setVisibility(View.GONE);
+        }
     }
     
     private void initViews(View view) {
@@ -73,18 +86,15 @@ public class DashboardFragment extends Fragment {
         tvProfitMargin = view.findViewById(R.id.tvProfitMargin);
         tvModalAwal = view.findViewById(R.id.tvModalAwal);
         modalAwalRepository = new ModalAwalRepository(requireActivity().getApplication());
-        tampilkanModalAwal();
+        // Jangan panggil tampilkanModalAwal() di sini, panggil di spinner
     }
     
-    private void tampilkanModalAwal() {
-        int storeId = 0;
-        if (loginViewModel.getCurrentUser().getValue() != null && loginViewModel.getCurrentUser().getValue().getStoreId() != null) {
-            storeId = loginViewModel.getCurrentUser().getValue().getStoreId();
-        }
+    private void tampilkanModalAwal(int storeId) {
         Calendar cal = Calendar.getInstance();
         long hariIni = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH)+1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
+        final int finalStoreId = storeId;
         new Thread(() -> {
-            ModalAwal modalAwal = modalAwalRepository.getModalAwalByTanggal(hariIni, storeId);
+            ModalAwal modalAwal = modalAwalRepository.getModalAwalByTanggal(hariIni, finalStoreId);
             double nominal = modalAwal != null ? modalAwal.nominal : 0.0;
             requireActivity().runOnUiThread(() -> {
                 tvModalAwal.setText("Modal Awal: " + id.tugas.pos.utils.CurrencyUtils.formatCurrency(nominal));
@@ -113,6 +123,7 @@ public class DashboardFragment extends Fragment {
                             mainActivity.setToolbarTitle("Dashboard", selectedStore.getName());
                             
                             // Jika pilih 'Semua Toko', load semua data
+                            tampilkanModalAwal(selectedStore.getId());
                             if (selectedStore.getId() == -1) {
                                 dashboardViewModel.loadDashboardData();
                             } else {
@@ -123,6 +134,7 @@ public class DashboardFragment extends Fragment {
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {
                             mainActivity.setToolbarTitle("Dashboard", "Semua Toko");
+                            tampilkanModalAwal(-1);
                             dashboardViewModel.loadDashboardData();
                         }
                     });
@@ -143,12 +155,14 @@ public class DashboardFragment extends Fragment {
                             Log.d(TAG, "setupStoreSelection: Store name: " + store.getName());
                             
                             // Load dashboard data for user's store
+                            tampilkanModalAwal(user.getStoreId());
                             dashboardViewModel.loadDashboardDataByStore(user.getStoreId());
                         }
                     });
                 } else {
                     Log.d(TAG, "setupStoreSelection: User has no storeId, loading all data");
                     // Fallback: load all data
+                    tampilkanModalAwal(-1);
                     dashboardViewModel.loadDashboardData();
                 }
             });
@@ -241,6 +255,7 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        requireActivity().invalidateOptionsMenu();
         Log.d(TAG, "onResume: Refreshing dashboard data");
         // Refresh data when fragment becomes active
         dashboardViewModel.forceRefreshAllData();

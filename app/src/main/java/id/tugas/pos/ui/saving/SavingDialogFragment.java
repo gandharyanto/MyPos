@@ -55,22 +55,23 @@ public class SavingDialogFragment extends DialogFragment {
                 Toast.makeText(getContext(), "Nominal harus > 0", Toast.LENGTH_SHORT).show();
                 return;
             }
+            final int finalNominal = nominal;
             dashboardViewModel.getTodaySales().observe(this, todaySales -> {
                 double today = todaySales != null ? todaySales : 0.0;
-                if (nominal > today) {
+                if (finalNominal > today) {
                     Toast.makeText(getContext(), "Nominal pengeluaran tidak boleh lebih dari pendapatan hari ini!", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 String ket = etKeterangan.getText().toString();
                 String tipe = spinnerTipePengeluaran.getSelectedItem().toString();
                 Saving saving = new Saving();
-                saving.setAmount(nominal);
+                saving.setAmount(finalNominal);
                 saving.setDescription(ket + " [" + tipe + "]");
                 saving.setSavingDate(System.currentTimeMillis());
                 savingViewModel.insert(saving, () -> {
                     // Logic modal awal jika tipe Saving
                     if ("Saving".equalsIgnoreCase(tipe)) {
-                        if (nominal < today) {
+                        if (finalNominal < today) {
                             Calendar cal = Calendar.getInstance();
                             cal.add(Calendar.DATE, 1);
                             long besok = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH)+1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
@@ -81,7 +82,7 @@ public class SavingDialogFragment extends DialogFragment {
                             ModalAwal modalAwal = new ModalAwal();
                             modalAwal.tanggal = besok;
                             modalAwal.storeId = storeId;
-                            modalAwal.nominal = today - nominal;
+                            modalAwal.nominal = today - finalNominal;
                             modalAwalRepository.insert(modalAwal);
                         }
                     }

@@ -14,11 +14,15 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import id.tugas.pos.R;
+import id.tugas.pos.ui.MainActivity;
+import id.tugas.pos.viewmodel.LoginViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
 public class ReportFragment extends Fragment {
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private ReportPagerAdapter pagerAdapter;
+    private MainActivity mainActivity;
 
     @Nullable
     @Override
@@ -42,5 +46,21 @@ public class ReportFragment extends Fragment {
                 case 3: tab.setText("Stok"); break;
             }
         }).attach();
+
+        mainActivity = (MainActivity) requireActivity();
+        LoginViewModel loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
+        if (loginViewModel.isAdmin()) {
+            mainActivity.spinnerStore.setVisibility(View.VISIBLE);
+            mainActivity.labelStore.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (mainActivity != null) {
+            mainActivity.spinnerStore.setVisibility(View.GONE);
+            mainActivity.labelStore.setVisibility(View.GONE);
+        }
     }
 } 

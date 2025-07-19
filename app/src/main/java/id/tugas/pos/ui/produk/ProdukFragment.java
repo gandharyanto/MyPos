@@ -44,6 +44,7 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     private LoginViewModel loginViewModel;
     private StoreViewModel storeViewModel;
     private AlertDialog currentDialog; // Tambahkan field untuk menyimpan dialog
+    private MainActivity mainActivity;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -53,6 +54,7 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mainActivity = (MainActivity) requireActivity();
         
         initViews(view);
         setupViewModel();
@@ -63,6 +65,10 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
         setupStoreDropdown();
         observeData();
+        if (loginViewModel.isAdmin()) {
+            mainActivity.spinnerStore.setVisibility(View.VISIBLE);
+            mainActivity.labelStore.setVisibility(View.VISIBLE);
+        }
     }
 
     private void initViews(View view) {
@@ -125,8 +131,8 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         
         loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
             if (user != null && user.isAdmin()) {
-                // Admin: gunakan spinner toolbar
-                storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
+                // Admin: gunakan spinner toolbar dengan pilihan toko tertentu (TIDAK ADA "Semua Toko")
+                loginViewModel.getStoresForProduct().observe(getViewLifecycleOwner(), stores -> {
                     if (stores != null && !stores.isEmpty()) {
                         // Setup spinner toolbar
                         if (getActivity() instanceof MainActivity) {
@@ -139,15 +145,25 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
                                         
                                         // Update toolbar subtitle dengan store yang dipilih
                                         updateToolbarTitle("Manajemen Produk", selected.getName());
+                                        
+                                        // Log untuk debug
+                                        android.util.Log.d("ProdukFragment", "Admin selected store: " + selected.getName() + " (ID: " + selected.getId() + ")");
                                     }
                                     @Override
-                                    public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                                    public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                                        // Jika tidak ada yang dipilih, pilih store pertama
+                                        if (stores.size() > 0) {
+                                            storeViewModel.setSelectedStoreId(stores.get(0).getId());
+                                            updateToolbarTitle("Manajemen Produk", stores.get(0).getName());
+                                        }
+                                    }
                                 });
                             
-                            // Set default selection ke store pertama
+                            // Set default selection ke store pertama (WAJIB pilih toko)
                             if (stores.size() > 0) {
                                 storeViewModel.setSelectedStoreId(stores.get(0).getId());
                                 updateToolbarTitle("Manajemen Produk", stores.get(0).getName());
+                                android.util.Log.d("ProdukFragment", "Admin default store: " + stores.get(0).getName() + " (ID: " + stores.get(0).getId() + ")");
                             }
                         }
                     }
@@ -284,9 +300,8 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         // Reset toolbar title
         updateToolbarTitle("Produk", null);
         // Clear spinner toolbar
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).clearToolbarStoreSpinner();
-        }
+        mainActivity.spinnerStore.setVisibility(View.GONE);
+        mainActivity.labelStore.setVisibility(View.GONE);
         // Dismiss dialog jika masih terbuka untuk mencegah window leak
         if (currentDialog != null && currentDialog.isShowing()) {
             currentDialog.dismiss();

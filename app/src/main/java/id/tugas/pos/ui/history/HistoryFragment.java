@@ -60,27 +60,6 @@ public class HistoryFragment extends Fragment implements TransactionHistoryAdapt
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.main_menu, menu);
-        // Tampilkan Spinner hanya untuk admin
-        if (isAdmin()) {
-            MenuItem item = menu.findItem(R.id.action_store_spinner);
-            View actionView = item.getActionView();
-            if (actionView != null) {
-                Spinner spinner = actionView.findViewById(R.id.spinnerStore);
-                TextView label = actionView.findViewById(R.id.labelStore);
-                setupStoreSpinner(spinner);
-            }
-        } else {
-            // Sembunyikan Spinner jika bukan admin
-            MenuItem item = menu.findItem(R.id.action_store_spinner);
-            if (item != null) item.setVisible(false);
-        }
     }
 
     private void setupStoreSpinner(Spinner spinner) {

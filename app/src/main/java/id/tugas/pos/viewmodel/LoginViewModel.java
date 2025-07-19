@@ -221,6 +221,11 @@ public class LoginViewModel extends AndroidViewModel {
         return liveData;
     }
     
+    // Method untuk ProdukFragment - tidak ada opsi "Semua Toko"
+    public LiveData<List<Store>> getStoresForProduct() {
+        return storeRepository.getAllStores();
+    }
+    
     public LiveData<Store> getStoreById(int storeId) {
         return storeRepository.getStoreById(storeId);
     }

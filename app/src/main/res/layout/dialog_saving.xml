@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:prompt="Pilih Tipe Pengeluaran" />
+        android:prompt="@string/prompt_pilih_tipe_pengeluaran" />
 
     <EditText
         android:id="@+id/etNominal"

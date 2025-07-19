@@ -43,7 +43,6 @@ public class ExpenseFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -150,22 +149,6 @@ public class ExpenseFragment extends Fragment {
                 public void onNothingSelected(android.widget.AdapterView<?> parent) {}
             });
         });
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.main_menu, menu);
-        if (isAdmin()) {
-            MenuItem item = menu.findItem(R.id.action_store_spinner);
-            if (item != null) {
-                Spinner spinner = item.getActionView().findViewById(R.id.spinnerStore);
-                setupStoreSpinner(spinner);
-            }
-        } else {
-            MenuItem item = menu.findItem(R.id.action_store_spinner);
-            if (item != null) item.setVisible(false);
-        }
     }
 
     private boolean isAdmin() {
