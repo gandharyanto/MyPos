@@ -34,6 +34,7 @@ import id.tugas.pos.ui.transaksi.TransaksiFragment;
 import id.tugas.pos.ui.user.UserManagementFragment;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import android.util.Log;
+import android.widget.Spinner; // Tambahkan import untuk Spinner
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = "MainActivity";
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView tvUserName, tvUserRole;
     private LoginViewModel loginViewModel;
     private User currentUser;
+    private Spinner toolbarStoreSpinner; // Tambahkan field untuk spinner toolbar
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,14 +99,58 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tvUserRole = headerView.findViewById(R.id.tvUserRole);
     }
     
+    // Method untuk mendapatkan spinner toolbar
+    public Spinner getToolbarStoreSpinner() {
+        if (toolbarStoreSpinner == null) {
+            // Find the menu item and get its action view
+            Menu menu = toolbar.getMenu();
+            MenuItem storeSpinnerItem = menu.findItem(R.id.action_store_spinner);
+            if (storeSpinnerItem != null && storeSpinnerItem.getActionView() != null) {
+                toolbarStoreSpinner = storeSpinnerItem.getActionView().findViewById(R.id.spinnerStore);
+            }
+        }
+        return toolbarStoreSpinner;
+    }
+    
+    // Method untuk mengatur spinner toolbar
+    public void setupToolbarStoreSpinner(java.util.List<id.tugas.pos.data.model.Store> stores, 
+                                       android.widget.AdapterView.OnItemSelectedListener listener) {
+        Spinner spinner = getToolbarStoreSpinner();
+        if (spinner != null && stores != null && !stores.isEmpty()) {
+            android.widget.ArrayAdapter<id.tugas.pos.data.model.Store> adapter = 
+                new android.widget.ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stores);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(adapter);
+            spinner.setOnItemSelectedListener(listener);
+        }
+    }
+    
+    // Method untuk clear spinner toolbar
+    public void clearToolbarStoreSpinner() {
+        Spinner spinner = getToolbarStoreSpinner();
+        if (spinner != null) {
+            spinner.setAdapter(null);
+            spinner.setOnItemSelectedListener(null);
+        }
+    }
+    
     private void setupToolbar() {
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Dashboard");
+        getSupportActionBar().setSubtitle(null); // Clear subtitle
         
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+    }
+    
+    // Method untuk mengatur title dan subtitle dari fragment
+    public void setToolbarTitle(String title, String subtitle) {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
+            getSupportActionBar().setSubtitle(subtitle);
+        }
     }
     
     private void setupNavigation() {
@@ -116,22 +162,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (itemId == R.id.nav_dashboard) {
                 loadFragment(new DashboardFragment());
                 getSupportActionBar().setTitle("Dashboard");
+                getSupportActionBar().setSubtitle(null);
                 return true;
             } else if (itemId == R.id.nav_products) {
                 loadFragment(new ProdukFragment());
                 getSupportActionBar().setTitle("Produk");
+                getSupportActionBar().setSubtitle(null);
                 return true;
             } else if (itemId == R.id.nav_transaction) {
                 loadFragment(new TransaksiFragment());
                 getSupportActionBar().setTitle("Transaksi");
+                getSupportActionBar().setSubtitle(null);
                 return true;
             } else if (itemId == R.id.nav_history) {
                 loadFragment(new HistoryFragment());
                 getSupportActionBar().setTitle("Riwayat");
+                getSupportActionBar().setSubtitle(null);
                 return true;
             } else if (itemId == R.id.nav_report) {
                 loadFragment(new ReportFragment());
                 getSupportActionBar().setTitle("Laporan");
+                getSupportActionBar().setSubtitle(null);
                 return true;
             }
             return false;
@@ -151,6 +202,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_users).setVisible(false);
             menu.findItem(R.id.nav_settings).setVisible(false);
         }
+        
+        // Invalidate options menu to update toolbar items
+        invalidateOptionsMenu();
     }
     
     private void loadFragment(Fragment fragment) {
@@ -158,6 +212,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .beginTransaction()
                 .replace(R.id.fragmentContainer, fragment)
                 .commit();
+        
+        // Clear subtitle dan spinner toolbar secara default
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setSubtitle(null);
+        }
+        clearToolbarStoreSpinner();
         
         // Close drawer if open
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -179,27 +239,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (itemId == R.id.nav_dashboard) {
             loadFragment(new DashboardFragment());
             getSupportActionBar().setTitle("Dashboard");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_products) {
             loadFragment(new ProdukFragment());
             getSupportActionBar().setTitle("Produk");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_transaction) {
             loadFragment(new TransaksiFragment());
             getSupportActionBar().setTitle("Transaksi");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_history) {
             loadFragment(new HistoryFragment());
             getSupportActionBar().setTitle("Riwayat");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_expense) {
             loadFragment(new ExpenseFragment());
             getSupportActionBar().setTitle("Pengeluaran");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_report) {
             loadFragment(new ReportFragment());
             getSupportActionBar().setTitle("Laporan");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_users) {
             loadFragment(new UserManagementFragment());
             getSupportActionBar().setTitle("Manajemen User");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_settings) {
             loadFragment(new SettingsFragment());
             getSupportActionBar().setTitle("Pengaturan");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_logout) {
             logout();
         }
@@ -224,6 +292,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        
+        // Hide store spinner for non-admin users
+        if (!loginViewModel.isAdmin()) {
+            MenuItem storeSpinnerItem = menu.findItem(R.id.action_store_spinner);
+            if (storeSpinnerItem != null) {
+                storeSpinnerItem.setVisible(false);
+            }
+        }
+        
         return true;
     }
     

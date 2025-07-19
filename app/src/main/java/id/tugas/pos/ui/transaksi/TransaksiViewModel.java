@@ -1,6 +1,8 @@
 package id.tugas.pos.ui.transaksi;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -26,6 +28,7 @@ public class TransaksiViewModel extends AndroidViewModel {
     private MutableLiveData<List<TransactionItem>> cartItems = new MutableLiveData<>(new ArrayList<>());
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public TransaksiViewModel(@NonNull Application application) {
         super(application);
@@ -133,7 +136,9 @@ public class TransaksiViewModel extends AndroidViewModel {
 
                         @Override
                         public void onError(String error) {
-                            errorMessage.setValue("Gagal menyimpan item transaksi: " + error);
+                            mainHandler.post(() -> {
+                                errorMessage.setValue("Gagal menyimpan item transaksi: " + error);
+                            });
                         }
                     });
                 }
@@ -142,14 +147,18 @@ public class TransaksiViewModel extends AndroidViewModel {
                 printReceipt(transaction, items);
                 
                 // Clear cart
-                clearCart();
-                isLoading.setValue(false);
+                mainHandler.post(() -> {
+                    clearCart();
+                    isLoading.setValue(false);
+                });
             }
 
             @Override
             public void onError(String error) {
-                errorMessage.setValue("Gagal memproses transaksi: " + error);
-                isLoading.setValue(false);
+                mainHandler.post(() -> {
+                    errorMessage.setValue("Gagal memproses transaksi: " + error);
+                    isLoading.setValue(false);
+                });
             }
         });
     }
@@ -171,7 +180,9 @@ public class TransaksiViewModel extends AndroidViewModel {
 
                             @Override
                             public void onError(String error) {
-                                errorMessage.setValue("Gagal update stok: " + error);
+                                mainHandler.post(() -> {
+                                    errorMessage.setValue("Gagal update stok: " + error);
+                                });
                             }
                         });
                     }
@@ -180,7 +191,9 @@ public class TransaksiViewModel extends AndroidViewModel {
 
             @Override
             public void onError(String error) {
-                errorMessage.setValue("Gagal mendapatkan data produk: " + error);
+                mainHandler.post(() -> {
+                    errorMessage.setValue("Gagal mendapatkan data produk: " + error);
+                });
             }
         });
     }

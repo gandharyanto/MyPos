@@ -31,6 +31,7 @@ import id.tugas.pos.ui.produk.dialog.AddEditProductDialog;
 import id.tugas.pos.utils.CurrencyUtils;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.viewmodel.StoreViewModel;
+import id.tugas.pos.ui.MainActivity;
 
 public class ProdukFragment extends Fragment implements ProductAdapter.OnProductClickListener {
 
@@ -42,8 +43,6 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     private List<Product> allProducts = new ArrayList<>();
     private LoginViewModel loginViewModel;
     private StoreViewModel storeViewModel;
-    private Spinner spinnerStore;
-    private TextView tvStoreLabel; // Tambahkan field untuk store label
     private AlertDialog currentDialog; // Tambahkan field untuk menyimpan dialog
 
     @Override
@@ -70,19 +69,23 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         recyclerView = view.findViewById(R.id.recycler_view_products);
         searchView = view.findViewById(R.id.search_view_products);
         fabAdd = view.findViewById(R.id.fab_add_product);
-        spinnerStore = view.findViewById(R.id.spinner_store);
-        tvStoreLabel = view.findViewById(R.id.tv_store_label);
         
-        // Null check untuk spinnerStore
-        if (spinnerStore == null) {
-            // Log warning jika spinner tidak ditemukan
-            android.util.Log.w("ProdukFragment", "spinner_store not found in layout");
+        // Null check untuk recyclerView
+        if (recyclerView == null) {
+            // Log warning jika recyclerView tidak ditemukan
+            android.util.Log.w("ProdukFragment", "recycler_view_products not found in layout");
         }
         
-        // Null check untuk tvStoreLabel
-        if (tvStoreLabel == null) {
-            // Log warning jika label tidak ditemukan
-            android.util.Log.w("ProdukFragment", "tv_store_label not found in layout");
+        // Null check untuk searchView
+        if (searchView == null) {
+            // Log warning jika searchView tidak ditemukan
+            android.util.Log.w("ProdukFragment", "search_view_products not found in layout");
+        }
+        
+        // Null check untuk fabAdd
+        if (fabAdd == null) {
+            // Log warning jika fabAdd tidak ditemukan
+            android.util.Log.w("ProdukFragment", "fab_add_product not found in layout");
         }
     }
 
@@ -117,72 +120,75 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void setupStoreDropdown() {
-        // Null check untuk spinnerStore
-        if (spinnerStore == null) {
-            return;
-        }
+        // Set toolbar title
+        updateToolbarTitle("Manajemen Produk", null);
         
         loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
             if (user != null && user.isAdmin()) {
-                // Tampilkan spinner dan label untuk admin
-                if (spinnerStore != null) {
-                    spinnerStore.setVisibility(View.VISIBLE);
-                }
-                if (tvStoreLabel != null) {
-                    tvStoreLabel.setVisibility(View.VISIBLE);
-                }
-                
+                // Admin: gunakan spinner toolbar
                 storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
-                    if (spinnerStore != null) {
-                        ArrayAdapter<Store> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, stores);
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerStore.setAdapter(adapter);
-                        spinnerStore.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                                Store selected = stores.get(position);
-                                storeViewModel.setSelectedStoreId(selected.getId());
+                    if (stores != null && !stores.isEmpty()) {
+                        // Setup spinner toolbar
+                        if (getActivity() instanceof MainActivity) {
+                            ((MainActivity) getActivity()).setupToolbarStoreSpinner(stores, 
+                                new android.widget.AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                                        id.tugas.pos.data.model.Store selected = stores.get(position);
+                                        storeViewModel.setSelectedStoreId(selected.getId());
+                                        
+                                        // Update toolbar subtitle dengan store yang dipilih
+                                        updateToolbarTitle("Manajemen Produk", selected.getName());
+                                    }
+                                    @Override
+                                    public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+                                });
+                            
+                            // Set default selection ke store pertama
+                            if (stores.size() > 0) {
+                                storeViewModel.setSelectedStoreId(stores.get(0).getId());
+                                updateToolbarTitle("Manajemen Produk", stores.get(0).getName());
                             }
-                            @Override
-                            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-                        });
+                        }
                     }
                 });
             } else {
-                // Sembunyikan spinner dan label untuk user biasa
-                if (spinnerStore != null) {
-                    spinnerStore.setVisibility(View.GONE);
-                }
-                if (tvStoreLabel != null) {
-                    tvStoreLabel.setVisibility(View.GONE);
+                // User: langsung gunakan store yang sudah ditetapkan
+                if (user != null && user.getStoreId() != null) {
+                    storeViewModel.setSelectedStoreId(user.getStoreId());
+                    
+                    // Tampilkan informasi store yang sedang aktif di toolbar
+                    storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
+                        if (stores != null) {
+                            for (id.tugas.pos.data.model.Store store : stores) {
+                                if (store.getId() == user.getStoreId()) {
+                                    updateToolbarTitle("Manajemen Produk", store.getName());
+                                    break;
+                                }
+                            }
+                        }
+                    });
                 }
             }
         });
     }
+    
+    private void updateToolbarTitle(String title, String subtitle) {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setToolbarTitle(title, subtitle);
+        }
+    }
 
     private void observeData() {
-        loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
-            if (user != null) {
-                if (user.isAdmin()) {
-                    // Admin: filter produk sesuai toko yang dipilih
-                    storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
-                        if (storeId != null) {
-                            viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
-                                allProducts = products;
-                                adapter.submitList(products);
-                            });
-                        }
-                    });
-                } else {
-                    // User: tampilkan produk sesuai toko
-                    Integer storeId = user.getStoreId();
-                    if (storeId != null) {
-                        viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
-                            allProducts = products;
-                            adapter.submitList(products);
-                        });
-                    }
-                }
+        // Observe selected store ID (untuk admin) atau user's store ID (untuk user)
+        storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
+            android.util.Log.d("ProdukFragment", "Selected storeId: " + storeId);
+            if (storeId != null) {
+                viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                    android.util.Log.d("ProdukFragment", "Jumlah produk: " + (products != null ? products.size() : 0));
+                    allProducts = products;
+                    adapter.submitList(products);
+                });
             }
         });
     }
@@ -246,8 +252,24 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
     
     @Override
+    public void onEditClick(Product product) {
+        showEditProductDialog(product);
+    }
+    
+    @Override
+    public void onDeleteClick(Product product) {
+        showDeleteConfirmationDialog(product);
+    }
+    
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // Reset toolbar title
+        updateToolbarTitle("Produk", null);
+        // Clear spinner toolbar
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).clearToolbarStoreSpinner();
+        }
         // Dismiss dialog jika masih terbuka untuk mencegah window leak
         if (currentDialog != null && currentDialog.isShowing()) {
             currentDialog.dismiss();

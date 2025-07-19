@@ -2,59 +2,94 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
-        <TextView
+        <!-- Search Card -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Manajemen Produk"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/white">
 
-        <Spinner
-            android:id="@+id/spinner_store"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone"
-            android:background="@drawable/bg_spinner"
-            android:padding="12dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tv_store_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pilih Toko:"
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Cari Produk"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="12dp"
+                    android:drawableStart="@drawable/ic_search"
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical" />
 
-        <SearchView
-            android:id="@+id/search_view_products"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_search"
-            android:queryHint="Cari produk..."
-            android:iconifiedByDefault="false"
-            android:layout_marginBottom="16dp"
-            android:textColor="@android:color/black" />
+                <SearchView
+                    android:id="@+id/search_view_products"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_search_modern"
+                    android:queryHint="Masukkan nama atau kode produk..."
+                    android:iconifiedByDefault="false"
+                    android:textColor="@color/text_primary"
+                    android:minHeight="48dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_products"
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Products List Card -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:clipToPadding="false"
-            android:paddingBottom="80dp" />
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Daftar Produk"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="16dp"
+                    android:drawableStart="@drawable/ic_list"
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_view_products"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="80dp"
+                    android:scrollbars="vertical" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
 
     </LinearLayout>
 
@@ -63,9 +98,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_margin="24dp"
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/primary"
-        app:tint="@color/white" />
+        app:tint="@color/white"
+        app:elevation="6dp"
+        app:fabSize="normal" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 

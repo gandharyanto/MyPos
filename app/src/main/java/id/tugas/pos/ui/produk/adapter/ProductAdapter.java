@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
+
 import java.util.List;
 
 import id.tugas.pos.R;
@@ -23,6 +25,8 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductV
     public interface OnProductClickListener {
         void onProductClick(Product product);
         void onProductLongClick(Product product);
+        void onEditClick(Product product);
+        void onDeleteClick(Product product);
     }
 
     public ProductAdapter(OnProductClickListener listener) {
@@ -50,6 +54,8 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductV
         private TextView tvProductPrice;
         private TextView tvProductStock;
         private TextView tvProductCategory;
+        private MaterialButton btnEdit;
+        private MaterialButton btnDelete;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -58,6 +64,23 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductV
             tvProductPrice = itemView.findViewById(R.id.tv_product_price);
             tvProductStock = itemView.findViewById(R.id.tv_product_stock);
             tvProductCategory = itemView.findViewById(R.id.tv_product_category);
+            btnEdit = itemView.findViewById(R.id.btn_edit);
+            btnDelete = itemView.findViewById(R.id.btn_delete);
+
+            // Set click listeners untuk buttons
+            btnEdit.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onEditClick(getItem(position));
+                }
+            });
+
+            btnDelete.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onDeleteClick(getItem(position));
+                }
+            });
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();

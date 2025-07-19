@@ -1,6 +1,8 @@
 package id.tugas.pos.ui.produk;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -18,6 +20,7 @@ public class ProdukViewModel extends AndroidViewModel {
     private LiveData<List<Product>> allProducts;
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public ProdukViewModel(@NonNull Application application) {
         super(application);
@@ -42,13 +45,17 @@ public class ProdukViewModel extends AndroidViewModel {
         repository.addProduct(product, new ProductRepository.OnProductOperationListener() {
             @Override
             public void onSuccess() {
-                isLoading.setValue(false);
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                });
             }
 
             @Override
             public void onError(String error) {
-                isLoading.setValue(false);
-                errorMessage.setValue(error);
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                    errorMessage.setValue(error);
+                });
             }
         });
     }
@@ -58,13 +65,17 @@ public class ProdukViewModel extends AndroidViewModel {
         repository.updateProduct(product, new ProductRepository.OnProductOperationListener() {
             @Override
             public void onSuccess() {
-                isLoading.setValue(false);
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                });
             }
 
             @Override
             public void onError(String error) {
-                isLoading.setValue(false);
-                errorMessage.setValue(error);
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                    errorMessage.setValue(error);
+                });
             }
         });
     }
@@ -74,13 +85,17 @@ public class ProdukViewModel extends AndroidViewModel {
         repository.deleteProduct(product, new ProductRepository.OnProductOperationListener() {
             @Override
             public void onSuccess() {
-                isLoading.setValue(false);
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                });
             }
 
             @Override
             public void onError(String error) {
-                isLoading.setValue(false);
-                errorMessage.setValue(error);
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                    errorMessage.setValue(error);
+                });
             }
         });
     }
@@ -99,7 +114,9 @@ public class ProdukViewModel extends AndroidViewModel {
 
             @Override
             public void onError(String error) {
-                errorMessage.setValue(error);
+                mainHandler.post(() -> {
+                    errorMessage.setValue(error);
+                });
             }
         });
     }
@@ -113,7 +130,9 @@ public class ProdukViewModel extends AndroidViewModel {
 
             @Override
             public void onError(String error) {
-                errorMessage.setValue(error);
+                mainHandler.post(() -> {
+                    errorMessage.setValue(error);
+                });
             }
         });
     }
