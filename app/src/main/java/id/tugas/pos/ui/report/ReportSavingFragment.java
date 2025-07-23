@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.Locale;
 import android.widget.TextView;
 import id.tugas.pos.ui.saving.SavingDialogFragment;
+import id.tugas.pos.viewmodel.StoreViewModel;
 
 public class ReportSavingFragment extends Fragment {
     private LaporanSavingAdapter adapter;
@@ -26,6 +27,7 @@ public class ReportSavingFragment extends Fragment {
     private long startDate = 0;
     private long endDate = 0;
     private TextView tvTanggalDipilih;
+    private StoreViewModel storeViewModel;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -51,9 +53,11 @@ public class ReportSavingFragment extends Fragment {
         Button btnFilterTanggal = view.findViewById(R.id.btnFilterTanggal);
         btnFilterTanggal.setOnClickListener(v -> showDateRangePicker());
 
+        storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
         Button btnTambahSaving = view.findViewById(R.id.btnTambahSaving);
         btnTambahSaving.setOnClickListener(v -> {
-            new SavingDialogFragment().show(getParentFragmentManager(), "saving_dialog");
+            Integer storeId = storeViewModel.getSelectedStoreId().getValue();
+            new SavingDialogFragment(storeId != null ? storeId : 0).show(getParentFragmentManager(), "saving_dialog");
         });
 
         // Load data awal (semua tanggal)

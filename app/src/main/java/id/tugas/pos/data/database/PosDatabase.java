@@ -5,6 +5,8 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import id.tugas.pos.data.model.Expense;
 import id.tugas.pos.data.model.Product;
@@ -51,9 +53,17 @@ public abstract class PosDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     PosDatabase.class,
                     DATABASE_NAME)
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_8_9)
                     .build();
         }
         return instance;
     }
+
+    // Migrasi dari versi 8 ke 9: tambah kolom storeId di tabel saving
+    public static final Migration MIGRATION_8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE saving ADD COLUMN storeId INTEGER NOT NULL DEFAULT 0");
+        }
+    };
 } 

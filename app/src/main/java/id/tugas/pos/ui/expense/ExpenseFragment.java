@@ -39,6 +39,7 @@ public class ExpenseFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView tvEmptyState, tvTotalExpenses, tvExpenseCount;
     private int selectedStoreId = -1;
+    private Spinner spinnerStore; // Tambahkan deklarasi Spinner
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,12 @@ public class ExpenseFragment extends Fragment {
         expenseViewModel = new ViewModelProvider(this).get(ExpenseViewModel.class);
         initViews(view);
         setupRecyclerView();
+        if (isAdmin()) {
+            spinnerStore.setVisibility(View.VISIBLE);
+            setupStoreSpinner(spinnerStore);
+        } else {
+            spinnerStore.setVisibility(View.GONE);
+        }
         setupObservers();
         return view;
     }
@@ -65,8 +72,9 @@ public class ExpenseFragment extends Fragment {
         tvTotalExpenses = view.findViewById(R.id.tvTotalExpenses);
         tvExpenseCount = view.findViewById(R.id.tvExpenseCount);
         Button btnTambahPengeluaran = view.findViewById(R.id.btnTambahPengeluaran);
+        spinnerStore = view.findViewById(R.id.spinnerStore); // Inisialisasi spinner
         btnTambahPengeluaran.setOnClickListener(v -> {
-            new SavingDialogFragment().show(getParentFragmentManager(), "saving_dialog");
+            new SavingDialogFragment(selectedStoreId).show(getParentFragmentManager(), "saving_dialog");
         });
     }
 
@@ -77,18 +85,25 @@ public class ExpenseFragment extends Fragment {
     }
 
     private void setupObservers() {
+        Button btnTambahPengeluaran = getView().findViewById(R.id.btnTambahPengeluaran);
         if (isAdmin()) {
             storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
                 if (storeId != null && storeId >= 0) {
                     selectedStoreId = storeId;
+                    btnTambahPengeluaran.setEnabled(true);
                     observeExpensesByStore(storeId);
+                } else {
+                    btnTambahPengeluaran.setEnabled(false);
                 }
             });
         } else {
             User user = loginViewModel.getCurrentUser().getValue();
             if (user != null && user.getStoreId() != null) {
                 selectedStoreId = user.getStoreId();
+                btnTambahPengeluaran.setEnabled(true);
                 observeExpensesByStore(selectedStoreId);
+            } else {
+                btnTambahPengeluaran.setEnabled(false);
             }
         }
     }
