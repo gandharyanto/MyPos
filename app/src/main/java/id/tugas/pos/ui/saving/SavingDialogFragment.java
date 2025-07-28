@@ -30,10 +30,19 @@ public class SavingDialogFragment extends DialogFragment {
     private DashboardViewModel dashboardViewModel;
     private LoginViewModel loginViewModel;
     private ModalAwalRepository modalAwalRepository;
+    private int storeId;
+    public SavingDialogFragment(int storeId) {
+        this.storeId = storeId;
+    }
 
     @Nullable
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        if (storeId <= 0) {
+            Toast.makeText(getContext(), "Pilih toko terlebih dahulu!", Toast.LENGTH_SHORT).show();
+            dismiss();
+            return super.onCreateDialog(savedInstanceState);
+        }
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_saving, null, false);
         etNominal = view.findViewById(R.id.etNominal);
         etKeterangan = view.findViewById(R.id.etKeterangan);
@@ -68,6 +77,7 @@ public class SavingDialogFragment extends DialogFragment {
                 saving.setAmount(finalNominal);
                 saving.setDescription(ket + " [" + tipe + "]");
                 saving.setSavingDate(System.currentTimeMillis());
+                saving.setStoreId(storeId); // set storeId ke saving
                 savingViewModel.insert(saving, () -> {
                     // Logic modal awal jika tipe Saving
                     if ("Saving".equalsIgnoreCase(tipe)) {
@@ -75,10 +85,6 @@ public class SavingDialogFragment extends DialogFragment {
                             Calendar cal = Calendar.getInstance();
                             cal.add(Calendar.DATE, 1);
                             long besok = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH)+1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
-                            int storeId = 0;
-                            if (loginViewModel.getCurrentUser().getValue() != null && loginViewModel.getCurrentUser().getValue().getStoreId() != null) {
-                                storeId = loginViewModel.getCurrentUser().getValue().getStoreId();
-                            }
                             ModalAwal modalAwal = new ModalAwal();
                             modalAwal.tanggal = besok;
                             modalAwal.storeId = storeId;
