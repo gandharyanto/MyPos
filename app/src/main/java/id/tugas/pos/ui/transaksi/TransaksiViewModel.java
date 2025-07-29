@@ -78,12 +78,17 @@ public class TransaksiViewModel extends AndroidViewModel {
             if (item.getProductId() == product.getId()) {
                 Log.d(TAG, "addToCart: Product already exists, increasing quantity");
                 // Increase quantity if stock allows
-                if (item.getQuantity() < product.getStock()) {
-                    item.setQuantity(item.getQuantity() + 1);
-                    item.setSubtotal(item.getQuantity() * item.getPrice());
+                int newQuantity = item.getQuantity() + 1;
+                if (newQuantity <= product.getStock()) {
+                    item.setQuantity(newQuantity);
+                    item.setSubtotal(newQuantity * item.getPrice());
                     Log.d(TAG, "addToCart: Quantity increased to: " + item.getQuantity() + ", Subtotal: " + item.getSubtotal());
                 } else {
                     Log.d(TAG, "addToCart: Cannot increase quantity, stock limit reached");
+                    mainHandler.post(() -> {
+                        errorMessage.setValue("Stok tidak mencukupi untuk produk " + product.getName());
+                    });
+                    return;
                 }
                 found = true;
                 break;
@@ -92,16 +97,25 @@ public class TransaksiViewModel extends AndroidViewModel {
 
         if (!found) {
             Log.d(TAG, "addToCart: Product not found, adding new item");
-            // Add new item to cart
-            TransactionItem newItem = new TransactionItem(
-                0, // transactionId (akan diset saat checkout)
-                product.getId(), // productId
-                product.getName(), // productName
-                product.getPrice(), // price
-                1 // quantity
-            );
-            currentCart.add(newItem);
-            Log.d(TAG, "addToCart: New item added, cart size now: " + currentCart.size());
+            // Check if product has stock
+            if (product.getStock() > 0) {
+                // Add new item to cart
+                TransactionItem newItem = new TransactionItem(
+                    0, // transactionId (akan diset saat checkout)
+                    product.getId(), // productId
+                    product.getName(), // productName
+                    product.getPrice(), // price
+                    1 // quantity
+                );
+                currentCart.add(newItem);
+                Log.d(TAG, "addToCart: New item added, cart size now: " + currentCart.size());
+            } else {
+                Log.d(TAG, "addToCart: Product out of stock");
+                mainHandler.post(() -> {
+                    errorMessage.setValue("Produk " + product.getName() + " habis stok");
+                });
+                return;
+            }
         }
 
         Log.d(TAG, "addToCart: Setting cart value with " + currentCart.size() + " items");
@@ -121,12 +135,34 @@ public class TransaksiViewModel extends AndroidViewModel {
         if (currentCart != null) {
             for (TransactionItem cartItem : currentCart) {
                 if (cartItem.getProductId() == item.getProductId()) {
-                    cartItem.setQuantity(newQuantity);
-                    cartItem.setSubtotal(newQuantity * cartItem.getPrice());
+                    // Validate stock before updating quantity
+                    productRepository.getProductById(cartItem.getProductId(), new ProductRepository.OnProductSearchListener() {
+                        @Override
+                        public void onSuccess(List<Product> products) {
+                            if (!products.isEmpty()) {
+                                Product product = products.get(0);
+                                if (newQuantity <= product.getStock()) {
+                                    cartItem.setQuantity(newQuantity);
+                                    cartItem.setSubtotal(newQuantity * cartItem.getPrice());
+                                    cartItems.setValue(currentCart);
+                                } else {
+                                    mainHandler.post(() -> {
+                                        errorMessage.setValue("Stok tidak mencukupi. Stok tersedia: " + product.getStock());
+                                    });
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            mainHandler.post(() -> {
+                                errorMessage.setValue("Gagal memvalidasi stok: " + error);
+                            });
+                        }
+                    });
                     break;
                 }
             }
-            cartItems.setValue(currentCart);
         }
     }
 
@@ -212,7 +248,9 @@ public class TransaksiViewModel extends AndroidViewModel {
                         productRepository.updateProduct(product, new ProductRepository.OnProductOperationListener() {
                             @Override
                             public void onSuccess() {
-                                // Stock updated successfully
+                                Log.d(TAG, "updateProductStock: Stock updated successfully for product " + product.getName() + 
+                                      " (ID: " + product.getId() + "). Old stock: " + (product.getStock() + item.getQuantity()) + 
+                                      ", New stock: " + product.getStock() + ", Quantity sold: " + item.getQuantity());
                             }
 
                             @Override
@@ -222,12 +260,24 @@ public class TransaksiViewModel extends AndroidViewModel {
                                 });
                             }
                         });
+                    } else {
+                        Log.e(TAG, "updateProductStock: Cannot update stock - insufficient stock for product " + product.getName() + 
+                              " (ID: " + product.getId() + "). Current stock: " + product.getStock() + ", Requested quantity: " + item.getQuantity());
+                        mainHandler.post(() -> {
+                            errorMessage.setValue("Stok tidak mencukupi untuk produk " + product.getName());
+                        });
                     }
+                } else {
+                    Log.e(TAG, "updateProductStock: Product not found with ID: " + item.getProductId());
+                    mainHandler.post(() -> {
+                        errorMessage.setValue("Produk tidak ditemukan");
+                    });
                 }
             }
 
             @Override
             public void onError(String error) {
+                Log.e(TAG, "updateProductStock: Error getting product data: " + error);
                 mainHandler.post(() -> {
                     errorMessage.setValue("Gagal mendapatkan data produk: " + error);
                 });
