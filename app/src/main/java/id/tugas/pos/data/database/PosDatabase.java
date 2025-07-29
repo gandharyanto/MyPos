@@ -20,6 +20,8 @@ import id.tugas.pos.data.model.StockIn;
 import id.tugas.pos.data.database.StockInDao;
 import id.tugas.pos.data.model.ModalAwal;
 import id.tugas.pos.data.database.ModalAwalDao;
+import id.tugas.pos.data.model.Category;
+import id.tugas.pos.data.database.CategoryDao;
 
 @Database(entities = {
         User.class,
@@ -30,8 +32,9 @@ import id.tugas.pos.data.database.ModalAwalDao;
         Store.class,
         Saving.class,
         StockIn.class,
-        ModalAwal.class
-}, version = 8, exportSchema = false)
+        ModalAwal.class,
+        Category.class
+}, version = 10, exportSchema = false)
 public abstract class PosDatabase extends RoomDatabase {
     
     private static final String DATABASE_NAME = "pos_database";
@@ -46,6 +49,7 @@ public abstract class PosDatabase extends RoomDatabase {
     public abstract SavingDao savingDao();
     public abstract StockInDao stockInDao();
     public abstract ModalAwalDao modalAwalDao();
+    public abstract CategoryDao categoryDao();
     
     public static synchronized PosDatabase getInstance(Context context) {
         if (instance == null) {
@@ -53,7 +57,7 @@ public abstract class PosDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     PosDatabase.class,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_8_9)
+                    .fallbackToDestructiveMigration()
                     .build();
         }
         return instance;
@@ -63,7 +67,25 @@ public abstract class PosDatabase extends RoomDatabase {
     public static final Migration MIGRATION_8_9 = new Migration(8, 9) {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE saving ADD COLUMN storeId INTEGER NOT NULL DEFAULT 0");
+            // Cek apakah kolom storeId sudah ada di tabel saving
+            try {
+                database.execSQL("ALTER TABLE saving ADD COLUMN storeId INTEGER NOT NULL DEFAULT 0");
+            } catch (Exception e) {
+                // Kolom sudah ada, skip
+            }
+        }
+    };
+    
+    // Migrasi dari versi 9 ke 10: tambah kolom storeId di tabel stock_in
+    public static final Migration MIGRATION_9_10 = new Migration(9, 10) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            // Cek apakah kolom storeId sudah ada di tabel stock_in
+            try {
+                database.execSQL("ALTER TABLE stock_in ADD COLUMN storeId INTEGER NOT NULL DEFAULT 0");
+            } catch (Exception e) {
+                // Kolom sudah ada, skip
+            }
         }
     };
 } 

@@ -162,13 +162,14 @@
         android:hint="Kategori"
         style="@style/OutlinedTextInputStyle">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_product_category"
+        <Spinner
+            android:id="@+id/spinner_product_category"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:capitalize="words"
-            android:maxLines="1"
+            android:background="@color/white"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            style="@style/SpinnerStyle"
             android:textColor="@color/black" />
 
     </com.google.android.material.textfield.TextInputLayout>

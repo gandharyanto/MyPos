@@ -17,15 +17,21 @@ import androidx.fragment.app.DialogFragment;
 
 import id.tugas.pos.R;
 import id.tugas.pos.data.model.Product;
+import id.tugas.pos.viewmodel.ProductViewModel;
+import id.tugas.pos.viewmodel.CategoryViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
 public class AddEditProductDialog extends DialogFragment {
 
-    private EditText etProductName, etProductCode, etProductCost, etProductPrice, etProductStock, etProductCategory, etProductUnit;
+    private EditText etProductName, etProductCode, etProductCost, etProductPrice, etProductStock, etProductUnit;
+    private android.widget.Spinner spinnerCategory;
     private Button btnSave, btnCancel;
     private Product productToEdit;
     private OnProductSavedListener listener;
     private Integer storeId; // Tambahkan field untuk storeId
     private android.widget.TextView tvProfitMargin; // Tambahkan TextView untuk margin keuntungan
+    private ProductViewModel productViewModel;
+    private CategoryViewModel categoryViewModel;
 
     public interface OnProductSavedListener {
         void onProductSaved(Product product);
@@ -71,11 +77,18 @@ public class AddEditProductDialog extends DialogFragment {
         etProductCost = view.findViewById(R.id.et_product_cost);
         etProductPrice = view.findViewById(R.id.et_product_price);
         etProductStock = view.findViewById(R.id.et_product_stock);
-        etProductCategory = view.findViewById(R.id.et_product_category);
+        spinnerCategory = view.findViewById(R.id.spinner_product_category);
         etProductUnit = view.findViewById(R.id.et_product_unit);
         btnSave = view.findViewById(R.id.btn_save_product);
         btnCancel = view.findViewById(R.id.btn_cancel_product);
         tvProfitMargin = view.findViewById(R.id.tv_profit_margin);
+        
+        // Initialize ViewModels
+        productViewModel = new ViewModelProvider(requireActivity()).get(ProductViewModel.class);
+        categoryViewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
+        
+        // Setup category spinner
+        setupCategorySpinner();
     }
 
     private void setupListeners() {
@@ -108,6 +121,47 @@ public class AddEditProductDialog extends DialogFragment {
                 calculateProfitMargin();
             }
         });
+    }
+    
+    private void setupCategorySpinner() {
+        // Get categories from database for this store
+        if (storeId != null) {
+            categoryViewModel.getAllCategoryNamesByStore(storeId).observe(this, dbCategories -> {
+                if (dbCategories != null && !dbCategories.isEmpty()) {
+                    // Create adapter with database categories only
+                    android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                        requireContext(),
+                        R.layout.spinner_item_black_text,
+                        dbCategories
+                    );
+                    adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
+                    spinnerCategory.setAdapter(adapter);
+                    
+                    // Set default selection to first item
+                    if (dbCategories.size() > 0) {
+                        spinnerCategory.setSelection(0);
+                    }
+                } else {
+                    // If no categories in database, show empty spinner
+                    android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                        requireContext(),
+                        R.layout.spinner_item_black_text,
+                        new java.util.ArrayList<>()
+                    );
+                    adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
+                    spinnerCategory.setAdapter(adapter);
+                }
+            });
+        } else {
+            // If no storeId, show empty spinner
+            android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                requireContext(),
+                R.layout.spinner_item_black_text,
+                new java.util.ArrayList<>()
+            );
+            adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
+            spinnerCategory.setAdapter(adapter);
+        }
     }
     
     private void calculateProfitMargin() {
@@ -145,7 +199,17 @@ public class AddEditProductDialog extends DialogFragment {
             etProductCost.setText(String.valueOf(productToEdit.getCostPrice()));
             etProductPrice.setText(String.valueOf(productToEdit.getPrice()));
             etProductStock.setText(String.valueOf(productToEdit.getStock()));
-            etProductCategory.setText(productToEdit.getCategory());
+            
+            // Set category spinner to match product category
+            String productCategory = productToEdit.getCategory();
+            android.widget.ArrayAdapter<String> adapter = (android.widget.ArrayAdapter<String>) spinnerCategory.getAdapter();
+            for (int i = 0; i < adapter.getCount(); i++) {
+                if (adapter.getItem(i).equals(productCategory)) {
+                    spinnerCategory.setSelection(i);
+                    break;
+                }
+            }
+            
             etProductUnit.setText(productToEdit.getUnit());
         }
     }
@@ -156,7 +220,7 @@ public class AddEditProductDialog extends DialogFragment {
         String costStr = etProductCost.getText().toString().trim();
         String priceStr = etProductPrice.getText().toString().trim();
         String stockStr = etProductStock.getText().toString().trim();
-        String category = etProductCategory.getText().toString().trim();
+        String category = spinnerCategory.getSelectedItem().toString();
         String unit = etProductUnit.getText().toString().trim();
 
         // Validation
@@ -182,11 +246,6 @@ public class AddEditProductDialog extends DialogFragment {
 
         if (TextUtils.isEmpty(stockStr)) {
             etProductStock.setError("Stok harus diisi");
-            return;
-        }
-
-        if (TextUtils.isEmpty(category)) {
-            etProductCategory.setError("Kategori harus diisi");
             return;
         }
 

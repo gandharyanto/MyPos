@@ -65,8 +65,8 @@ public class HistoryFragment extends Fragment implements TransactionHistoryAdapt
     private void setupStoreSpinner(Spinner spinner) {
         storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
             if (stores == null) return;
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item_black_text);
+            adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
             for (Store store : stores) {
                 adapter.add(store.getName());
             }

@@ -94,6 +94,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initViews();
         setupToolbar();
         setupNavigation();
+        
+        // Show store spinner by default, only hide for non-admin users
+        if (loginViewModel.isAdmin()) {
+            spinnerStore.setVisibility(View.VISIBLE);
+            labelStore.setVisibility(View.VISIBLE);
+        } else {
+            spinnerStore.setVisibility(View.GONE);
+            labelStore.setVisibility(View.GONE);
+        }
 
         // HAPUS: Logic default fragment dari sini karena sudah dipindah ke observer
     }
@@ -138,8 +147,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             android.widget.AdapterView.OnItemSelectedListener listener) {
         if (spinnerStore != null && stores != null && !stores.isEmpty()) {
             android.widget.ArrayAdapter<Store> adapter =
-                new android.widget.ArrayAdapter<>(this, android.R.layout.simple_spinner_item, stores);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                new android.widget.ArrayAdapter<>(this, R.layout.spinner_item_black_text, stores);
+            adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
             spinnerStore.setAdapter(adapter);
             spinnerStore.setOnItemSelectedListener(listener);
         }
@@ -185,6 +194,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             item = menu.findItem(R.id.nav_dashboard); if (item != null) item.setVisible(false);
             item = menu.findItem(R.id.nav_report); if (item != null) item.setVisible(false);
             // Pengeluaran DITAMPILKAN untuk user
+        }
+        
+        // Set spinner visibility based on user role
+        if (loginViewModel.isAdmin()) {
+            spinnerStore.setVisibility(View.VISIBLE);
+            labelStore.setVisibility(View.VISIBLE);
+        } else {
+            spinnerStore.setVisibility(View.GONE);
+            labelStore.setVisibility(View.GONE);
         }
         
         // Invalidate options menu to update toolbar items

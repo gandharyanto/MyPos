@@ -32,12 +32,7 @@
             android:layout_marginBottom="16dp"
             android:textColor="@android:color/black" />
 
-        <Spinner
-            android:id="@+id/spinner_store"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view_products"

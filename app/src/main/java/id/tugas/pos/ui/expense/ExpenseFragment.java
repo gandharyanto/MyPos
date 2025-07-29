@@ -135,8 +135,8 @@ public class ExpenseFragment extends Fragment {
     private void setupStoreSpinner(Spinner spinner) {
         storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
             if (stores == null) return;
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item_black_text);
+            adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
             for (id.tugas.pos.data.model.Store store : stores) {
                 adapter.add(store.getName());
             }

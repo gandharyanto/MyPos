@@ -151,76 +151,9 @@ public class DashboardViewModel extends AndroidViewModel {
     public void forceRefreshAllData() {
         Log.d(TAG, "forceRefreshAllData: Force refreshing all dashboard data for storeId: " + currentStoreId);
         
-        // Force refresh semua data
-        if (currentStoreId != null) {
-            // Refresh revenue
-            transactionRepository.getTotalRevenueByStore(currentStoreId).observeForever(revenue -> {
-                Log.d(TAG, "forceRefreshAllData: Total revenue: " + revenue);
-                totalRevenue.setValue(revenue != null ? revenue : 0.0);
-                calculateProfitMargin();
-            });
-            
-            // Refresh today sales
-            loadTodaySales(currentStoreId);
-            
-            // Refresh products
-            productRepository.getActiveProductCountByStore(currentStoreId).observeForever(count -> {
-                Log.d(TAG, "forceRefreshAllData: Total products: " + count);
-                totalProducts.setValue(count != null ? count : 0);
-            });
-            
-            productRepository.getLowStockCountByStore(currentStoreId).observeForever(count -> {
-                Log.d(TAG, "forceRefreshAllData: Low stock count: " + count);
-                lowStockCount.setValue(count != null ? count : 0);
-            });
-            
-            // Refresh pending transactions
-            transactionRepository.getPendingTransactionCountByStore(currentStoreId).observeForever(count -> {
-                Log.d(TAG, "forceRefreshAllData: Pending transactions: " + count);
-                pendingTransactions.setValue(count != null ? count : 0);
-            });
-            
-            // Refresh expenses
-            expenseRepository.getTotalExpensesByStore(currentStoreId).observeForever(expenses -> {
-                Log.d(TAG, "forceRefreshAllData: Total expenses: " + expenses);
-                totalExpenses.setValue(expenses != null ? expenses : 0.0);
-                calculateProfitMargin();
-            });
-        } else {
-            // Refresh untuk semua store (admin)
-            transactionRepository.getTotalRevenue().observeForever(revenue -> {
-                Log.d(TAG, "forceRefreshAllData: Total revenue (all stores): " + revenue);
-                totalRevenue.setValue(revenue != null ? revenue : 0.0);
-                calculateProfitMargin();
-            });
-            
-            // Load today's sales for all stores
-            loadTodaySales(null);
-            
-            // Load product counts for all stores
-            productRepository.getActiveProductCount().observeForever(count -> {
-                Log.d(TAG, "forceRefreshAllData: Total products (all stores): " + count);
-                totalProducts.setValue(count != null ? count : 0);
-            });
-            
-            productRepository.getLowStockCount().observeForever(count -> {
-                Log.d(TAG, "forceRefreshAllData: Low stock count (all stores): " + count);
-                lowStockCount.setValue(count != null ? count : 0);
-            });
-            
-            // Load pending transactions for all stores
-            transactionRepository.getPendingTransactionCount().observeForever(count -> {
-                Log.d(TAG, "forceRefreshAllData: Pending transactions (all stores): " + count);
-                pendingTransactions.setValue(count != null ? count : 0);
-            });
-            
-            // Load total expenses for all stores
-            expenseRepository.getTotalExpenses().observeForever(expenses -> {
-                Log.d(TAG, "forceRefreshAllData: Total expenses (all stores): " + expenses);
-                totalExpenses.setValue(expenses != null ? expenses : 0.0);
-                calculateProfitMargin();
-            });
-        }
+        // Hanya refresh jika benar-benar diperlukan
+        // Untuk sementara, kita skip refresh otomatis untuk menghindari refresh berlebihan
+        Log.d(TAG, "forceRefreshAllData: Skipping automatic refresh to prevent excessive updates");
     }
     
     private void loadTodaySales(Integer storeId) {

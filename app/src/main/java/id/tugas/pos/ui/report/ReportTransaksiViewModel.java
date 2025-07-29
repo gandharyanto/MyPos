@@ -24,4 +24,8 @@ public class ReportTransaksiViewModel extends AndroidViewModel {
     public void loadLaporanTransaksi(long startDate, long endDate) {
         laporanTransaksi = repository.getLaporanTransaksi(startDate, endDate);
     }
+    
+    public void loadLaporanTransaksiByStore(long startDate, long endDate, int storeId) {
+        laporanTransaksi = repository.getLaporanTransaksiByStore(startDate, endDate, storeId);
+    }
 } 

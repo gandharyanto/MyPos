@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="product_categories">
-        <item>Makanan</item>
-        <item>Minuman</item>
-        <item>Snack</item>
-        <item>Rokok</item>
-        <item>Pulsa</item>
-        <item>Lainnya</item>
-    </string-array>
-    
     <string-array name="payment_methods">
         <item>Tunai</item>
         <item>Kartu Debit</item>

@@ -38,14 +38,17 @@
                     android:textStyle="bold"
                     android:textColor="@android:color/white"
                     android:layout_marginEnd="4dp"
-                    android:visibility="gone" />
+                    android:visibility="visible" />
 
                 <Spinner
                     android:id="@+id/spinnerStore"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:spinnerMode="dropdown"
-                    android:visibility="gone" />
+                    android:visibility="visible"
+                    style="@style/SpinnerStyle"
+                    android:background="@color/white"
+                    android:textColor="@color/black" />
             </LinearLayout>
 
         </androidx.appcompat.widget.Toolbar>

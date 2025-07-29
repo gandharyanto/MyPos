@@ -85,7 +85,13 @@ public interface ProductDao {
     
     @Query("SELECT COUNT(*) FROM products WHERE stock <= minStock AND isActive = 1 AND storeId = :storeId")
     LiveData<Integer> getLowStockCountByStore(int storeId);
+    
+    @Query("SELECT DISTINCT category FROM products WHERE isActive = 1 AND storeId = :storeId ORDER BY category ASC")
+    LiveData<List<String>> getAllCategoriesByStore(int storeId);
 
     @Query("SELECT name as namaProduk, 0 as stokMasuk, 0 as stokKeluar, stock as stokTersisa FROM products WHERE isActive = 1 ORDER BY name ASC")
     List<LaporanStokItem> getLaporanStokTersisa();
+    
+    @Query("SELECT name as namaProduk, 0 as stokMasuk, 0 as stokKeluar, stock as stokTersisa FROM products WHERE isActive = 1 AND storeId = :storeId ORDER BY name ASC")
+    List<LaporanStokItem> getLaporanStokTersisaByStore(int storeId);
 } 

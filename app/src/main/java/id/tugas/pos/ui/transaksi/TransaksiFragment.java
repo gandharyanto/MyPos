@@ -31,6 +31,7 @@ import id.tugas.pos.R;
 import id.tugas.pos.data.model.Product;
 import id.tugas.pos.data.model.Transaction;
 import id.tugas.pos.data.model.TransactionItem;
+import id.tugas.pos.ui.MainActivity;
 import id.tugas.pos.ui.transaksi.adapter.CartAdapter;
 import id.tugas.pos.ui.transaksi.adapter.ProductGridAdapter;
 import id.tugas.pos.utils.CurrencyUtils;
@@ -54,7 +55,7 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
     private List<TransactionItem> cartItems = new ArrayList<>();
     private LoginViewModel loginViewModel;
     private StoreViewModel storeViewModel;
-    private Spinner spinnerStore;
+    private MainActivity mainActivity;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -64,6 +65,7 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mainActivity = (MainActivity) requireActivity();
         
         initViews(view);
         setupViewModel();
@@ -84,7 +86,6 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         tvTotalItems = view.findViewById(R.id.tv_total_items);
         btnCheckout = view.findViewById(R.id.btn_checkout);
         btnClearCart = view.findViewById(R.id.btn_clear_cart);
-        spinnerStore = view.findViewById(R.id.spinner_store);
     }
 
     private void setupViewModel() {
@@ -132,14 +133,11 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
     }
 
     private void setupStoreDropdown() {
+        // Use toolbar spinner instead of local spinner
         loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
             if (user != null && user.isAdmin()) {
-                spinnerStore.setVisibility(View.VISIBLE);
                 storeViewModel.getAllStores().observe(getViewLifecycleOwner(), stores -> {
-                    ArrayAdapter<Store> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, stores);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    spinnerStore.setAdapter(adapter);
-                    spinnerStore.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                    mainActivity.setupToolbarStoreSpinner(stores, new android.widget.AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
                             Store selected = stores.get(position);
@@ -149,8 +147,6 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
                         public void onNothingSelected(android.widget.AdapterView<?> parent) {}
                     });
                 });
-            } else {
-                spinnerStore.setVisibility(View.GONE);
             }
         });
     }

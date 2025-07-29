@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Masukkan nama kategori baru untuk produk"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="20dp"
+        android:gravity="center"
+        android:drawableStart="@drawable/ic_info"
+        android:drawablePadding="8dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:hint="Nama Kategori"
+        style="@style/OutlinedTextInputStyle">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_category_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:capitalize="words"
+            android:maxLines="1"
+            android:textColor="@color/black"
+            android:maxLength="50"
+            android:hint="Contoh: Elektronik, Pakaian, Makanan" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Batal"
+            android:textColor="@color/text_secondary"
+            style="@style/Widget.Material3.Button.TextButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Simpan"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/primary"
+            style="@style/Widget.Material3.Button" />
+
+    </LinearLayout>
+
+</LinearLayout> 

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SearchView;
 import android.widget.Toast;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
@@ -13,12 +12,15 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ import id.tugas.pos.data.model.Product;
 import id.tugas.pos.data.model.Store;
 import id.tugas.pos.ui.produk.adapter.ProductAdapter;
 import id.tugas.pos.ui.produk.dialog.AddEditProductDialog;
+import id.tugas.pos.ui.produk.dialog.AddCategoryDialog;
 import id.tugas.pos.utils.CurrencyUtils;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.viewmodel.StoreViewModel;
@@ -40,6 +43,11 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     private RecyclerView recyclerView;
     private SearchView searchView;
     private FloatingActionButton fabAdd;
+    private View expandableMenu;
+    private FloatingActionButton fabAddProductMenu;
+    private FloatingActionButton fabAddCategoryMenu;
+    private TextView labelAddProduct;
+    private TextView labelAddCategory;
     private List<Product> allProducts = new ArrayList<>();
     private LoginViewModel loginViewModel;
     private StoreViewModel storeViewModel;
@@ -65,9 +73,10 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
         setupStoreDropdown();
         observeData();
-        if (loginViewModel.isAdmin()) {
-            mainActivity.spinnerStore.setVisibility(View.VISIBLE);
-            mainActivity.labelStore.setVisibility(View.VISIBLE);
+        // Show store spinner by default, only hide for non-admin users
+        if (!loginViewModel.isAdmin()) {
+            mainActivity.spinnerStore.setVisibility(View.GONE);
+            mainActivity.labelStore.setVisibility(View.GONE);
         }
     }
 
@@ -75,6 +84,11 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         recyclerView = view.findViewById(R.id.recycler_view_products);
         searchView = view.findViewById(R.id.search_view_products);
         fabAdd = view.findViewById(R.id.fab_add_product);
+        expandableMenu = view.findViewById(R.id.expandable_menu);
+        fabAddProductMenu = view.findViewById(R.id.fab_add_product_menu);
+        fabAddCategoryMenu = view.findViewById(R.id.fab_add_category_menu);
+        labelAddProduct = view.findViewById(R.id.label_add_product);
+        labelAddCategory = view.findViewById(R.id.label_add_category);
         
         // Null check untuk recyclerView
         if (recyclerView == null) {
@@ -122,7 +136,48 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void setupFab() {
-        fabAdd.setOnClickListener(v -> showAddProductDialog());
+        // Setup main FAB untuk toggle ArcMenu
+        fabAdd.setOnClickListener(v -> toggleArcMenu());
+        
+        // Setup menu items
+        fabAddProductMenu.setOnClickListener(v -> {
+            // Collapse menu
+            expandableMenu.setVisibility(View.GONE);
+            labelAddProduct.setVisibility(View.GONE);
+            labelAddCategory.setVisibility(View.GONE);
+            showAddProductDialog();
+        });
+        
+        fabAddCategoryMenu.setOnClickListener(v -> {
+            // Collapse menu
+            expandableMenu.setVisibility(View.GONE);
+            labelAddProduct.setVisibility(View.GONE);
+            labelAddCategory.setVisibility(View.GONE);
+            showAddCategoryDialog();
+        });
+    }
+    
+    private void toggleArcMenu() {
+        if (expandableMenu.getVisibility() == View.VISIBLE) {
+            // Collapse menu
+            Animation slideUp = AnimationUtils.loadAnimation(requireContext(), android.R.anim.slide_out_right);
+            expandableMenu.startAnimation(slideUp);
+            expandableMenu.setVisibility(View.GONE);
+            
+            // Hide labels
+            labelAddProduct.setVisibility(View.GONE);
+            labelAddCategory.setVisibility(View.GONE);
+        } else {
+            // Expand menu
+            expandableMenu.setVisibility(View.VISIBLE);
+            // Use fade in animation for smoother effect
+            Animation fadeIn = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_in);
+            expandableMenu.startAnimation(fadeIn);
+            
+            // Show labels with delay for better UX
+            labelAddProduct.postDelayed(() -> labelAddProduct.setVisibility(View.VISIBLE), 150);
+            labelAddCategory.postDelayed(() -> labelAddCategory.setVisibility(View.VISIBLE), 250);
+        }
     }
 
     private void setupStoreDropdown() {
@@ -242,6 +297,16 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         });
         dialog.show(getChildFragmentManager(), "AddProductDialog");
     }
+    
+    private void showAddCategoryDialog() {
+        AddCategoryDialog dialog = AddCategoryDialog.newInstance();
+        dialog.setOnCategorySavedListener(categoryName -> {
+            // For now, just show a toast message
+            // In the future, this could be extended to save categories to a database
+            Toast.makeText(requireContext(), "Kategori '" + categoryName + "' berhasil ditambahkan", Toast.LENGTH_SHORT).show();
+        });
+        dialog.show(getChildFragmentManager(), "AddCategoryDialog");
+    }
 
     private void showEditProductDialog(Product product) {
         // Get current storeId
@@ -299,9 +364,7 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         super.onDestroyView();
         // Reset toolbar title
         updateToolbarTitle("Produk", null);
-        // Clear spinner toolbar
-        mainActivity.spinnerStore.setVisibility(View.GONE);
-        mainActivity.labelStore.setVisibility(View.GONE);
+        // Don't hide spinner toolbar here - let it remain visible
         // Dismiss dialog jika masih terbuka untuk mencegah window leak
         if (currentDialog != null && currentDialog.isShowing()) {
             currentDialog.dismiss();

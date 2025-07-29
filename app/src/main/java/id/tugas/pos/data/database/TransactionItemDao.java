@@ -66,9 +66,25 @@ public interface TransactionItemDao {
            "GROUP BY productName")
     List<LaporanTransaksiItem> getLaporanTransaksi(long startDate, long endDate);
     
+    @Query("SELECT ti.productName as namaProduk, SUM(ti.quantity) as jumlahTerjual, SUM(ti.subtotal) as totalHarga " +
+           "FROM transaction_items ti " +
+           "INNER JOIN transactions t ON ti.transactionId = t.id " +
+           "WHERE ti.createdAt BETWEEN :startDate AND :endDate " +
+           "AND t.storeId = :storeId " +
+           "GROUP BY ti.productName")
+    List<LaporanTransaksiItem> getLaporanTransaksiByStore(long startDate, long endDate, int storeId);
+    
     @Query("SELECT productName as namaProduk, 0 as stokMasuk, SUM(quantity) as stokKeluar, 0 as stokTersisa " +
            "FROM transaction_items WHERE createdAt BETWEEN :startDate AND :endDate GROUP BY productId")
     List<LaporanStokItem> getLaporanStokKeluar(long startDate, long endDate);
+    
+    @Query("SELECT ti.productName as namaProduk, 0 as stokMasuk, SUM(ti.quantity) as stokKeluar, 0 as stokTersisa " +
+           "FROM transaction_items ti " +
+           "INNER JOIN transactions t ON ti.transactionId = t.id " +
+           "WHERE ti.createdAt BETWEEN :startDate AND :endDate " +
+           "AND t.storeId = :storeId " +
+           "GROUP BY ti.productId")
+    List<LaporanStokItem> getLaporanStokKeluarByStore(long startDate, long endDate, int storeId);
     
     public static class ProductSalesSummary {
         public int productId;

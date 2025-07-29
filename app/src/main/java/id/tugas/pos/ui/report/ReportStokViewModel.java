@@ -26,4 +26,10 @@ public class ReportStokViewModel extends AndroidViewModel {
             laporanStok.postValue(data);
         });
     }
+    
+    public void loadLaporanStokByStore(long startDate, long endDate, int storeId) {
+        repository.getLaporanStokByStore(startDate, endDate, storeId).observeForever(data -> {
+            laporanStok.postValue(data);
+        });
+    }
 } 

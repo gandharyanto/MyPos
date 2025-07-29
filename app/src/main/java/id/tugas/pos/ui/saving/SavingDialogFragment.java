@@ -50,8 +50,8 @@ public class SavingDialogFragment extends DialogFragment {
         spinnerTipePengeluaran = view.findViewById(R.id.spinnerTipePengeluaran);
         // Setup spinner tipe pengeluaran
         String[] tipeArray = {"Operasional", "Saving"};
-        ArrayAdapter<String> tipeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, tipeArray);
-        tipeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> tipeAdapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item_black_text, tipeArray);
+        tipeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
         spinnerTipePengeluaran.setAdapter(tipeAdapter);
         savingViewModel = new ViewModelProvider(requireActivity()).get(SavingViewModel.class);
         dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);

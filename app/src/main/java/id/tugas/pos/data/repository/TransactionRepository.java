@@ -134,6 +134,16 @@ public class TransactionRepository {
         return liveData;
     }
     
+    // Laporan transaksi dengan filter tanggal dan store
+    public LiveData<List<id.tugas.pos.ui.report.LaporanTransaksiItem>> getLaporanTransaksiByStore(long startDate, long endDate, int storeId) {
+        MutableLiveData<List<id.tugas.pos.ui.report.LaporanTransaksiItem>> liveData = new MutableLiveData<>();
+        executorService.execute(() -> {
+            List<id.tugas.pos.ui.report.LaporanTransaksiItem> data = transactionItemDao.getLaporanTransaksiByStore(startDate, endDate, storeId);
+            liveData.postValue(data);
+        });
+        return liveData;
+    }
+    
     // Callback interfaces
     public interface OnTransactionOperationListener {
         void onSuccess();

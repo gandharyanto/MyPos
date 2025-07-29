@@ -58,4 +58,35 @@ public class StokRepository {
         });
         return liveData;
     }
+    
+    public LiveData<List<LaporanStokItem>> getLaporanStokByStore(long startDate, long endDate, int storeId) {
+        MutableLiveData<List<LaporanStokItem>> liveData = new MutableLiveData<>();
+        executorService.execute(() -> {
+            List<LaporanStokItem> stokTersisa = productDao.getLaporanStokTersisaByStore(storeId);
+            List<LaporanStokItem> stokKeluar = transactionItemDao.getLaporanStokKeluarByStore(startDate, endDate, storeId);
+            List<LaporanStokItem> stokMasuk = stockInDao.getLaporanStokMasukByStore(startDate, endDate, storeId);
+            Map<String, LaporanStokItem> map = new HashMap<>();
+            for (LaporanStokItem item : stokTersisa) {
+                map.put(item.getNamaProduk(), new LaporanStokItem(item.getNamaProduk(), 0, 0, item.getStokTersisa()));
+            }
+            for (LaporanStokItem item : stokKeluar) {
+                LaporanStokItem stok = map.get(item.getNamaProduk());
+                if (stok != null) {
+                    stok.setStokKeluar(item.getStokKeluar());
+                } else {
+                    map.put(item.getNamaProduk(), new LaporanStokItem(item.getNamaProduk(), 0, item.getStokKeluar(), 0));
+                }
+            }
+            for (LaporanStokItem item : stokMasuk) {
+                LaporanStokItem stok = map.get(item.getNamaProduk());
+                if (stok != null) {
+                    stok.setStokMasuk(item.getStokMasuk());
+                } else {
+                    map.put(item.getNamaProduk(), new LaporanStokItem(item.getNamaProduk(), item.getStokMasuk(), 0, 0));
+                }
+            }
+            liveData.postValue(new java.util.ArrayList<>(map.values()));
+        });
+        return liveData;
+    }
 } 

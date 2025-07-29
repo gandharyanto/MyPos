@@ -31,4 +31,11 @@ public interface SavingDao {
            "WHERE savingDate BETWEEN :startDate AND :endDate " +
            "ORDER BY savingDate ASC")
     List<id.tugas.pos.ui.report.LaporanSavingItem> getLaporanSaving(long startDate, long endDate);
+    
+    @Query("SELECT savingDate as tanggal, amount as nominal, description as keterangan " +
+           "FROM saving " +
+           "WHERE savingDate BETWEEN :startDate AND :endDate " +
+           "AND storeId = :storeId " +
+           "ORDER BY savingDate ASC")
+    List<id.tugas.pos.ui.report.LaporanSavingItem> getLaporanSavingByStore(long startDate, long endDate, int storeId);
 } 

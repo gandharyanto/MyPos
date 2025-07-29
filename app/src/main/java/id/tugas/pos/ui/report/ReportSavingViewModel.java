@@ -26,4 +26,10 @@ public class ReportSavingViewModel extends AndroidViewModel {
             laporanSaving.postValue(data);
         });
     }
+    
+    public void loadLaporanSavingByStore(long startDate, long endDate, int storeId) {
+        repository.getLaporanSavingByStore(startDate, endDate, storeId).observeForever(data -> {
+            laporanSaving.postValue(data);
+        });
+    }
 } 

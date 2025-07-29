@@ -80,4 +80,11 @@ public interface ExpenseDao {
            "WHERE expenseDate BETWEEN :startDate AND :endDate " +
            "ORDER BY expenseDate ASC")
     List<id.tugas.pos.ui.report.LaporanPengeluaranItem> getLaporanPengeluaran(long startDate, long endDate);
+    
+    @Query("SELECT expenseDate as tanggal, category as kategori, amount as nominal, description as keterangan " +
+           "FROM expenses " +
+           "WHERE expenseDate BETWEEN :startDate AND :endDate " +
+           "AND storeId = :storeId " +
+           "ORDER BY expenseDate ASC")
+    List<id.tugas.pos.ui.report.LaporanPengeluaranItem> getLaporanPengeluaranByStore(long startDate, long endDate, int storeId);
 } 

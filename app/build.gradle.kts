@@ -114,4 +114,7 @@ dependencies {
 
     //gson
     implementation(libs.gson)
+    
+    // ArcMenu for FAB menu
+    implementation(libs.androidveil)
 }

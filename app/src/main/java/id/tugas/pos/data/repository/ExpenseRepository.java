@@ -145,6 +145,16 @@ public class ExpenseRepository {
         return liveData;
     }
     
+    // Laporan pengeluaran dengan filter tanggal dan store
+    public LiveData<List<LaporanPengeluaranItem>> getLaporanPengeluaranByStore(long startDate, long endDate, int storeId) {
+        MutableLiveData<List<LaporanPengeluaranItem>> liveData = new MutableLiveData<>();
+        executorService.execute(() -> {
+            List<LaporanPengeluaranItem> data = expenseDao.getLaporanPengeluaranByStore(startDate, endDate, storeId);
+            liveData.postValue(data);
+        });
+        return liveData;
+    }
+    
     // AsyncTask classes
     private static class InsertExpenseAsyncTask extends AsyncTask<Expense, Void, Void> {
         private ExpenseDao expenseDao;

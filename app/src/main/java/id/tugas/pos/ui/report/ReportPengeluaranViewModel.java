@@ -26,4 +26,10 @@ public class ReportPengeluaranViewModel extends AndroidViewModel {
             laporanPengeluaran.postValue(data);
         });
     }
+    
+    public void loadLaporanPengeluaranByStore(long startDate, long endDate, int storeId) {
+        repository.getLaporanPengeluaranByStore(startDate, endDate, storeId).observeForever(data -> {
+            laporanPengeluaran.postValue(data);
+        });
+    }
 } 

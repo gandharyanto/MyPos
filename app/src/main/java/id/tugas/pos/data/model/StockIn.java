@@ -11,5 +11,6 @@ public class StockIn {
     public String productName;
     public int quantity;
     public long createdAt;
+    public int storeId; // Tambahkan storeId
     // Bisa ditambah: supplier, keterangan, userId, dsb
 } 

@@ -28,6 +28,15 @@ public class SavingRepository {
         });
         return liveData;
     }
+    
+    public LiveData<List<LaporanSavingItem>> getLaporanSavingByStore(long startDate, long endDate, int storeId) {
+        MutableLiveData<List<LaporanSavingItem>> liveData = new MutableLiveData<>();
+        executorService.execute(() -> {
+            List<LaporanSavingItem> data = savingDao.getLaporanSavingByStore(startDate, endDate, storeId);
+            liveData.postValue(data);
+        });
+        return liveData;
+    }
 
     public void insert(Saving saving) {
         executorService.execute(() -> {

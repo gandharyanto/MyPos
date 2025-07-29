@@ -50,6 +50,36 @@ public class ReportPengeluaranFragment extends Fragment {
         Button btnFilterTanggal = view.findViewById(R.id.btnFilterTanggal);
         btnFilterTanggal.setOnClickListener(v -> showDateRangePicker());
 
+        // Setup store spinner for admin
+        id.tugas.pos.ui.MainActivity mainActivity = (id.tugas.pos.ui.MainActivity) requireActivity();
+        id.tugas.pos.viewmodel.LoginViewModel loginViewModel = new ViewModelProvider(requireActivity()).get(id.tugas.pos.viewmodel.LoginViewModel.class);
+        id.tugas.pos.viewmodel.StoreViewModel storeViewModel = new ViewModelProvider(requireActivity()).get(id.tugas.pos.viewmodel.StoreViewModel.class);
+        
+        if (loginViewModel.isAdmin()) {
+            mainActivity.spinnerStore.setVisibility(View.VISIBLE);
+            mainActivity.labelStore.setVisibility(View.VISIBLE);
+            
+            // Observe store selection for admin
+            storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
+                if (storeId != null && storeId > 0) {
+                    // Load data for selected store
+                    viewModel.loadLaporanPengeluaranByStore(startDate, endDate, storeId);
+                } else {
+                    // Load all data
+                    viewModel.loadLaporanPengeluaran(startDate, endDate);
+                }
+            });
+        } else {
+            // For user, use their store ID
+            loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+                if (user != null && user.getStoreId() != null) {
+                    viewModel.loadLaporanPengeluaranByStore(startDate, endDate, user.getStoreId());
+                } else {
+                    viewModel.loadLaporanPengeluaran(startDate, endDate);
+                }
+            });
+        }
+
         // Load data awal (semua tanggal)
         startDate = 0;
         endDate = System.currentTimeMillis();

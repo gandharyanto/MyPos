@@ -256,8 +256,8 @@ public class DashboardFragment extends Fragment {
     public void onResume() {
         super.onResume();
         requireActivity().invalidateOptionsMenu();
-        Log.d(TAG, "onResume: Refreshing dashboard data");
-        // Refresh data when fragment becomes active
-        dashboardViewModel.forceRefreshAllData();
+        Log.d(TAG, "onResume: Fragment resumed");
+        // Tidak perlu refresh data setiap kali resume
+        // Data akan di-load otomatis saat fragment pertama kali dibuat
     }
 } 
