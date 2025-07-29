@@ -19,9 +19,6 @@
     
     <string-array name="expense_categories">
         <item>Operasional</item>
-        <item>Gaji Karyawan</item>
-        <item>Utilitas</item>
-        <item>Pemeliharaan</item>
-        <item>Lainnya</item>
+        <item>Saving</item>
     </string-array>
 </resources> 

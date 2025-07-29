@@ -49,7 +49,7 @@ public class SavingDialogFragment extends DialogFragment {
         btnSimpan = view.findViewById(R.id.btnSimpan);
         spinnerTipePengeluaran = view.findViewById(R.id.spinnerTipePengeluaran);
         // Setup spinner tipe pengeluaran
-        String[] tipeArray = {"Operasional", "Gaji", "Listrik", "Lainnya", "Saving"};
+        String[] tipeArray = {"Operasional", "Saving"};
         ArrayAdapter<String> tipeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, tipeArray);
         tipeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTipePengeluaran.setAdapter(tipeAdapter);
