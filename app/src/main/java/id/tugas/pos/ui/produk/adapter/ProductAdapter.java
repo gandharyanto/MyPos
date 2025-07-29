@@ -56,6 +56,7 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductV
         private TextView tvProductCategory;
         private MaterialButton btnEdit;
         private MaterialButton btnDelete;
+        private android.widget.ImageView ivProductImage;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -66,6 +67,7 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductV
             tvProductCategory = itemView.findViewById(R.id.tv_product_category);
             btnEdit = itemView.findViewById(R.id.btn_edit);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+            ivProductImage = itemView.findViewById(R.id.iv_product_image);
 
             // Set click listeners untuk buttons
             btnEdit.setOnClickListener(v -> {
@@ -105,6 +107,26 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductV
             tvProductPrice.setText(CurrencyUtils.formatCurrency(product.getPrice()));
             tvProductStock.setText("Stok: " + product.getStock());
             tvProductCategory.setText(product.getCategory());
+            
+            // Load product image
+            loadProductImage(product);
+        }
+        
+        private void loadProductImage(Product product) {
+            if (product.getImagePath() != null && !product.getImagePath().isEmpty()) {
+                try {
+                    java.io.File file = new java.io.File(product.getImagePath());
+                    if (file.exists()) {
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath());
+                        ivProductImage.setImageBitmap(bitmap);
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            // Set default placeholder if no image or error
+            ivProductImage.setImageResource(R.drawable.ic_product_placeholder);
         }
     }
 

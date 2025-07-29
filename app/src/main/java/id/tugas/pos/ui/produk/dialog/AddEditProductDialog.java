@@ -32,6 +32,13 @@ public class AddEditProductDialog extends DialogFragment {
     private android.widget.TextView tvProfitMargin; // Tambahkan TextView untuk margin keuntungan
     private ProductViewModel productViewModel;
     private CategoryViewModel categoryViewModel;
+    
+    // Image related fields
+    private android.widget.ImageView ivProductImage;
+    private android.widget.Button btnCamera, btnGallery;
+    private String selectedImagePath;
+    private static final int REQUEST_CAMERA = 1001;
+    private static final int REQUEST_GALLERY = 1002;
 
     public interface OnProductSavedListener {
         void onProductSaved(Product product);
@@ -83,6 +90,11 @@ public class AddEditProductDialog extends DialogFragment {
         btnCancel = view.findViewById(R.id.btn_cancel_product);
         tvProfitMargin = view.findViewById(R.id.tv_profit_margin);
         
+        // Initialize image views
+        ivProductImage = view.findViewById(R.id.iv_product_image);
+        btnCamera = view.findViewById(R.id.btn_camera);
+        btnGallery = view.findViewById(R.id.btn_gallery);
+        
         // Initialize ViewModels
         productViewModel = new ViewModelProvider(requireActivity()).get(ProductViewModel.class);
         categoryViewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
@@ -94,6 +106,10 @@ public class AddEditProductDialog extends DialogFragment {
     private void setupListeners() {
         btnSave.setOnClickListener(v -> saveProduct());
         btnCancel.setOnClickListener(v -> dismiss());
+        
+        // Image selection listeners
+        btnCamera.setOnClickListener(v -> openCamera());
+        btnGallery.setOnClickListener(v -> openGallery());
         
         // Auto-calculate profit margin when cost or price changes
         etProductCost.addTextChangedListener(new android.text.TextWatcher() {
@@ -211,6 +227,12 @@ public class AddEditProductDialog extends DialogFragment {
             }
             
             etProductUnit.setText(productToEdit.getUnit());
+            
+            // Load existing product image
+            if (productToEdit.getImagePath() != null && !productToEdit.getImagePath().isEmpty()) {
+                loadProductImage(productToEdit.getImagePath());
+                selectedImagePath = productToEdit.getImagePath();
+            }
         }
     }
 
@@ -295,6 +317,12 @@ public class AddEditProductDialog extends DialogFragment {
                 product.setCreatedAt(productToEdit.getCreatedAt());
                 product.setUpdatedAt(System.currentTimeMillis());
                 product.setStoreId(productToEdit.getStoreId()); // Keep existing storeId
+                // Set image path if selected, otherwise keep existing
+                if (selectedImagePath != null && !selectedImagePath.isEmpty()) {
+                    product.setImagePath(selectedImagePath);
+                } else {
+                    product.setImagePath(productToEdit.getImagePath());
+                }
                 android.util.Log.d("AddEditProductDialog", "Edit product - StoreId: " + product.getStoreId());
             } else {
                 // Create new product
@@ -314,6 +342,10 @@ public class AddEditProductDialog extends DialogFragment {
                 } else {
                     android.util.Log.w("AddEditProductDialog", "New product - StoreId is null!");
                 }
+                // Set image path if selected
+                if (selectedImagePath != null && !selectedImagePath.isEmpty()) {
+                    product.setImagePath(selectedImagePath);
+                }
             }
 
             if (listener != null) {
@@ -323,6 +355,129 @@ public class AddEditProductDialog extends DialogFragment {
 
         } catch (NumberFormatException e) {
             Toast.makeText(requireContext(), "Format angka tidak valid", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    // Image handling methods
+    private void openCamera() {
+        if (checkCameraPermission()) {
+            android.content.Intent intent = new android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(intent, REQUEST_CAMERA);
+        }
+    }
+    
+    private void openGallery() {
+        if (checkStoragePermission()) {
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_PICK);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_GALLERY);
+        }
+    }
+    
+    private boolean checkCameraPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (requireActivity().checkSelfPermission(android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private boolean checkStoragePermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (requireActivity().checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_GALLERY);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            if (requestCode == REQUEST_CAMERA) {
+                openCamera();
+            } else if (requestCode == REQUEST_GALLERY) {
+                openGallery();
+            }
+        } else {
+            Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == android.app.Activity.RESULT_OK) {
+            if (requestCode == REQUEST_CAMERA && data != null) {
+                android.graphics.Bitmap photo = (android.graphics.Bitmap) data.getExtras().get("data");
+                if (photo != null) {
+                    selectedImagePath = saveImageToInternalStorage(photo);
+                    ivProductImage.setImageBitmap(photo);
+                }
+            } else if (requestCode == REQUEST_GALLERY && data != null) {
+                android.net.Uri selectedImage = data.getData();
+                if (selectedImage != null) {
+                    selectedImagePath = getRealPathFromURI(selectedImage);
+                    ivProductImage.setImageURI(selectedImage);
+                }
+            }
+        }
+    }
+    
+    private String saveImageToInternalStorage(android.graphics.Bitmap bitmap) {
+        try {
+            java.io.File directory = new java.io.File(requireContext().getFilesDir(), "product_images");
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+            
+            String fileName = "product_" + System.currentTimeMillis() + ".jpg";
+            java.io.File file = new java.io.File(directory, fileName);
+            
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.close();
+            
+            return file.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    private String getRealPathFromURI(android.net.Uri contentUri) {
+        try {
+            String[] proj = {android.provider.MediaStore.Images.Media.DATA};
+            android.database.Cursor cursor = requireContext().getContentResolver().query(contentUri, proj, null, null, null);
+            if (cursor != null) {
+                int column_index = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATA);
+                cursor.moveToFirst();
+                String path = cursor.getString(column_index);
+                cursor.close();
+                return path;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private void loadProductImage(String imagePath) {
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                java.io.File file = new java.io.File(imagePath);
+                if (file.exists()) {
+                    android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath());
+                    ivProductImage.setImageBitmap(bitmap);
+                    selectedImagePath = imagePath;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 } 

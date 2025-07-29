@@ -10,12 +10,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
@@ -47,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private User currentUser;
     public Spinner spinnerStore;
     public TextView labelStore;
+    private com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigationView;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabQuickActions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initViews();
         setupToolbar();
         setupNavigation();
+        setupBottomNavigation();
+        setupQuickActions();
         
         // Show store spinner by default, only hide for non-admin users
         if (loginViewModel.isAdmin()) {
@@ -111,6 +117,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawerLayout = findViewById(R.id.drawerLayout);
         navigationView = findViewById(R.id.navigationView);
         toolbar = findViewById(R.id.toolbar);
+        bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        fabQuickActions = findViewById(R.id.fabQuickActions);
         
         // Get header views
         View headerView = navigationView.getHeaderView(0);
@@ -131,6 +139,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        
+        if (itemId == R.id.action_quick_add_product) {
+            loadFragment(new ProdukFragment());
+            getSupportActionBar().setTitle("Produk");
+            return true;
+        } else if (itemId == R.id.action_quick_transaction) {
+            loadFragment(new TransaksiFragment());
+            getSupportActionBar().setTitle("Transaksi");
+            return true;
+        } else if (itemId == R.id.action_quick_expense) {
+            loadFragment(new ExpenseFragment());
+            getSupportActionBar().setTitle("Pengeluaran");
+            return true;
+        } else if (itemId == R.id.action_quick_stock) {
+            loadFragment(new ProdukFragment());
+            getSupportActionBar().setTitle("Produk");
+            return true;
+        }
+        
+        return super.onOptionsItemSelected(item);
     }
     
     // Method untuk mengatur title dan subtitle dari fragment
@@ -158,6 +197,121 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
         
         // Navigasi hanya lewat navigationView (drawer)
+    }
+    
+    private void setupBottomNavigation() {
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.nav_dashboard) {
+                if (loginViewModel.isAdmin()) {
+                    loadFragment(new DashboardFragment());
+                    getSupportActionBar().setTitle("Dashboard");
+                }
+            } else if (itemId == R.id.nav_products) {
+                loadFragment(new ProdukFragment());
+                getSupportActionBar().setTitle("Produk");
+            } else if (itemId == R.id.nav_transaction) {
+                loadFragment(new TransaksiFragment());
+                getSupportActionBar().setTitle("Transaksi");
+            } else if (itemId == R.id.nav_history) {
+                loadFragment(new HistoryFragment());
+                getSupportActionBar().setTitle("Riwayat");
+            } else if (itemId == R.id.nav_expense) {
+                loadFragment(new ExpenseFragment());
+                getSupportActionBar().setTitle("Pengeluaran");
+            }
+            
+            // Close drawer if open
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            }
+            
+            return true;
+        });
+    }
+    
+    private void setupQuickActions() {
+        fabQuickActions.setOnClickListener(v -> showQuickActionsDialog());
+    }
+    
+    private void showQuickActionsDialog() {
+        String[] actions = {
+            "Tambah Produk Baru",
+            "Tambah Kategori",
+            "Tambah Pengeluaran",
+            "Tambah Stok Masuk",
+            "Tambah Saving",
+            "Cek Stok"
+        };
+        
+        new AlertDialog.Builder(this)
+            .setTitle("Aksi Cepat")
+            .setItems(actions, (dialog, which) -> {
+                switch (which) {
+                    case 0: // Tambah Produk Baru
+                        loadFragment(new ProdukFragment());
+                        getSupportActionBar().setTitle("Produk");
+                        break;
+                    case 1: // Tambah Kategori
+                        showAddCategoryDialog();
+                        break;
+                    case 2: // Tambah Pengeluaran
+                        loadFragment(new ExpenseFragment());
+                        getSupportActionBar().setTitle("Pengeluaran");
+                        break;
+                    case 3: // Tambah Stok Masuk
+                        showStockInDialog();
+                        break;
+                    case 4: // Tambah Saving
+                        showSavingDialog();
+                        break;
+                    case 5: // Cek Stok
+                        showStockCheckDialog();
+                        break;
+                }
+            })
+            .setNegativeButton("Batal", null)
+            .show();
+    }
+    
+    private void showAddCategoryDialog() {
+        // Show AddCategoryDialog
+        id.tugas.pos.ui.produk.dialog.AddCategoryDialog dialog = 
+            id.tugas.pos.ui.produk.dialog.AddCategoryDialog.newInstance();
+        dialog.setOnCategorySavedListener(categoryName -> {
+            Toast.makeText(this, "Kategori '" + categoryName + "' berhasil ditambahkan", Toast.LENGTH_SHORT).show();
+        });
+        dialog.show(getSupportFragmentManager(), "AddCategoryDialog");
+    }
+    
+    private void showStockInDialog() {
+        // Show StockInDialog
+        id.tugas.pos.ui.stockin.StockInDialogFragment dialog = 
+            new id.tugas.pos.ui.stockin.StockInDialogFragment();
+        dialog.show(getSupportFragmentManager(), "StockInDialog");
+    }
+    
+    private void showSavingDialog() {
+        // Show SavingDialog - need storeId
+        Integer storeId = loginViewModel.getCurrentUser().getValue() != null ? 
+            loginViewModel.getCurrentUser().getValue().getStoreId() : 1;
+        id.tugas.pos.ui.saving.SavingDialogFragment dialog = 
+            new id.tugas.pos.ui.saving.SavingDialogFragment(storeId);
+        dialog.show(getSupportFragmentManager(), "SavingDialog");
+    }
+    
+    private void showStockCheckDialog() {
+        // Show stock check dialog
+        new AlertDialog.Builder(this)
+            .setTitle("Cek Stok")
+            .setMessage("Fitur ini akan menampilkan produk dengan stok rendah atau habis")
+            .setPositiveButton("Lihat", (dialog, which) -> {
+                loadFragment(new ProdukFragment());
+                getSupportActionBar().setTitle("Produk");
+            })
+            .setNegativeButton("Batal", null)
+            .show();
     }
     
     private void setupUserInfo() {
