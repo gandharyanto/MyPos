@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
 import android.view.View;
 import android.widget.TextView;
 
@@ -141,36 +142,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
     }
     
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
-        return true;
-    }
-    
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-        
-        if (itemId == R.id.action_quick_add_product) {
-            loadFragment(new ProdukFragment());
-            getSupportActionBar().setTitle("Produk");
-            return true;
-        } else if (itemId == R.id.action_quick_transaction) {
-            loadFragment(new TransaksiFragment());
-            getSupportActionBar().setTitle("Transaksi");
-            return true;
-        } else if (itemId == R.id.action_quick_expense) {
-            loadFragment(new ExpenseFragment());
-            getSupportActionBar().setTitle("Pengeluaran");
-            return true;
-        } else if (itemId == R.id.action_quick_stock) {
-            loadFragment(new ProdukFragment());
-            getSupportActionBar().setTitle("Produk");
-            return true;
-        }
-        
-        return super.onOptionsItemSelected(item);
-    }
+
     
     // Method untuk mengatur title dan subtitle dari fragment
     public void setToolbarTitle(String title, String subtitle) {
@@ -363,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         invalidateOptionsMenu();
     }
     
-    private void loadFragment(Fragment fragment) {
+    public void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragmentContainer, fragment)

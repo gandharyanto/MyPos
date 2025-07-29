@@ -61,7 +61,7 @@ public class ExpenseFragment extends Fragment {
         } else {
             spinnerStore.setVisibility(View.GONE);
         }
-        setupObservers();
+        setupObservers(view);
         return view;
     }
 
@@ -84,8 +84,8 @@ public class ExpenseFragment extends Fragment {
         recyclerView.setAdapter(expenseAdapter);
     }
 
-    private void setupObservers() {
-        Button btnTambahPengeluaran = getView().findViewById(R.id.btnTambahPengeluaran);
+    private void setupObservers(View view) {
+        Button btnTambahPengeluaran = view.findViewById(R.id.btnTambahPengeluaran);
         if (isAdmin()) {
             storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
                 if (storeId != null && storeId >= 0) {

@@ -34,6 +34,10 @@ public class DashboardFragment extends Fragment {
     private MainActivity mainActivity;
     private ModalAwalRepository modalAwalRepository;
     
+    // Quick action buttons
+    private com.google.android.material.button.MaterialButton btnQuickTransaction, btnQuickProduct, btnQuickExpense;
+    private com.google.android.material.button.MaterialButton btnQuickStock, btnQuickCategory, btnQuickSaving;
+    
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -86,6 +90,18 @@ public class DashboardFragment extends Fragment {
         tvProfitMargin = view.findViewById(R.id.tvProfitMargin);
         tvModalAwal = view.findViewById(R.id.tvModalAwal);
         modalAwalRepository = new ModalAwalRepository(requireActivity().getApplication());
+        
+        // Initialize quick action buttons
+        btnQuickTransaction = view.findViewById(R.id.btn_quick_transaction);
+        btnQuickProduct = view.findViewById(R.id.btn_quick_product);
+        btnQuickExpense = view.findViewById(R.id.btn_quick_expense);
+        btnQuickStock = view.findViewById(R.id.btn_quick_stock);
+        btnQuickCategory = view.findViewById(R.id.btn_quick_category);
+        btnQuickSaving = view.findViewById(R.id.btn_quick_saving);
+        
+        // Setup quick action listeners
+        setupQuickActions();
+        
         // Jangan panggil tampilkanModalAwal() di sini, panggil di spinner
     }
     
@@ -259,5 +275,67 @@ public class DashboardFragment extends Fragment {
         Log.d(TAG, "onResume: Fragment resumed");
         // Tidak perlu refresh data setiap kali resume
         // Data akan di-load otomatis saat fragment pertama kali dibuat
+    }
+    
+    private void setupQuickActions() {
+        // Quick Transaction
+        btnQuickTransaction.setOnClickListener(v -> {
+            mainActivity.loadFragment(new id.tugas.pos.ui.transaksi.TransaksiFragment());
+            mainActivity.getSupportActionBar().setTitle("Transaksi");
+        });
+        
+        // Quick Product
+        btnQuickProduct.setOnClickListener(v -> {
+            mainActivity.loadFragment(new id.tugas.pos.ui.produk.ProdukFragment());
+            mainActivity.getSupportActionBar().setTitle("Produk");
+        });
+        
+        // Quick Expense
+        btnQuickExpense.setOnClickListener(v -> {
+            mainActivity.loadFragment(new id.tugas.pos.ui.expense.ExpenseFragment());
+            mainActivity.getSupportActionBar().setTitle("Pengeluaran");
+        });
+        
+        // Quick Stock (same as product but focuses on inventory)
+        btnQuickStock.setOnClickListener(v -> {
+            mainActivity.loadFragment(new id.tugas.pos.ui.produk.ProdukFragment());
+            mainActivity.getSupportActionBar().setTitle("Produk");
+        });
+        
+        // Quick Category
+        btnQuickCategory.setOnClickListener(v -> {
+            showAddCategoryDialog();
+        });
+        
+        // Quick Saving
+        btnQuickSaving.setOnClickListener(v -> {
+            showSavingDialog();
+        });
+    }
+    
+    private void showAddCategoryDialog() {
+        // Show AddCategoryDialog
+        id.tugas.pos.ui.produk.dialog.AddCategoryDialog dialog = 
+            id.tugas.pos.ui.produk.dialog.AddCategoryDialog.newInstance();
+        dialog.setOnCategorySavedListener(categoryName -> {
+            android.widget.Toast.makeText(requireContext(), 
+                "Kategori '" + categoryName + "' berhasil ditambahkan", 
+                android.widget.Toast.LENGTH_SHORT).show();
+        });
+        dialog.show(getChildFragmentManager(), "AddCategoryDialog");
+    }
+    
+    private void showSavingDialog() {
+        // Show SavingDialog
+        User currentUser = loginViewModel.getCurrentUser().getValue();
+        Integer storeId = 1; // Default store ID
+        
+        if (currentUser != null && currentUser.getStoreId() != null) {
+            storeId = currentUser.getStoreId();
+        }
+        
+        id.tugas.pos.ui.saving.SavingDialogFragment dialog = 
+            new id.tugas.pos.ui.saving.SavingDialogFragment(storeId);
+        dialog.show(getChildFragmentManager(), "SavingDialog");
     }
 } 
