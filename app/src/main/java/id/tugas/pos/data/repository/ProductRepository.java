@@ -77,6 +77,28 @@ public class ProductRepository {
         });
     }
     
+    public void decreaseStock(int productId, int quantity, OnProductOperationListener listener) {
+        executorService.execute(() -> {
+            try {
+                productDao.decreaseStock(productId, quantity);
+                listener.onSuccess();
+            } catch (Exception e) {
+                listener.onError(e.getMessage());
+            }
+        });
+    }
+    
+    public void increaseStock(int productId, int quantity, OnProductOperationListener listener) {
+        executorService.execute(() -> {
+            try {
+                productDao.increaseStock(productId, quantity);
+                listener.onSuccess();
+            } catch (Exception e) {
+                listener.onError(e.getMessage());
+            }
+        });
+    }
+    
     public LiveData<Integer> getTotalProductCount() {
         return productDao.getTotalCount();
     }
@@ -142,10 +164,37 @@ public class ProductRepository {
     public void updateProduct(Product product, OnProductOperationListener listener) {
         executorService.execute(() -> {
             try {
+                android.util.Log.d("ProductRepository", "Updating product: " + product.getName() + " (ID: " + product.getId() + ")");
+                
+                // Validate product data
+                if (product.getName() == null || product.getName().trim().isEmpty()) {
+                    listener.onError("Nama produk tidak boleh kosong");
+                    return;
+                }
+                
+                if (product.getBarcode() == null || product.getBarcode().trim().isEmpty()) {
+                    listener.onError("Kode produk tidak boleh kosong");
+                    return;
+                }
+                
+                if (product.getStock() < 0) {
+                    listener.onError("Stok tidak boleh negatif");
+                    return;
+                }
+                
+                if (product.getPrice() < 0) {
+                    listener.onError("Harga tidak boleh negatif");
+                    return;
+                }
+                
+                // Update the product
                 productDao.update(product);
+                android.util.Log.d("ProductRepository", "Product updated successfully: " + product.getName());
                 listener.onSuccess();
+                
             } catch (Exception e) {
-                listener.onError(e.getMessage());
+                android.util.Log.e("ProductRepository", "Error updating product: " + e.getMessage());
+                listener.onError("Gagal memperbarui produk: " + e.getMessage());
             }
         });
     }
@@ -198,6 +247,22 @@ public class ProductRepository {
                 List<Product> products = new ArrayList<>();
                 if (product != null) {
                     products.add(product);
+                }
+                listener.onSuccess(products);
+            } catch (Exception e) {
+                listener.onError(e.getMessage());
+            }
+        });
+    }
+    
+    public void getProductStock(int productId, OnProductSearchListener listener) {
+        executorService.execute(() -> {
+            try {
+                Product product = productDao.getProductById(productId).getValue();
+                List<Product> products = new ArrayList<>();
+                if (product != null) {
+                    products.add(product);
+                    System.out.println("DEBUG: Product " + product.getName() + " (ID: " + productId + ") stock: " + product.getStock());
                 }
                 listener.onSuccess(products);
             } catch (Exception e) {

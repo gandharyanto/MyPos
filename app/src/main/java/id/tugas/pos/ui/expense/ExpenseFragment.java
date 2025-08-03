@@ -26,7 +26,6 @@ import id.tugas.pos.viewmodel.ExpenseViewModel;
 import android.widget.ProgressBar;
 import java.util.List;
 import android.widget.ArrayAdapter;
-import id.tugas.pos.ui.saving.SavingDialogFragment;
 import android.widget.Button;
 
 public class ExpenseFragment extends Fragment {
@@ -74,7 +73,7 @@ public class ExpenseFragment extends Fragment {
         Button btnTambahPengeluaran = view.findViewById(R.id.btnTambahPengeluaran);
         spinnerStore = view.findViewById(R.id.spinnerStore); // Inisialisasi spinner
         btnTambahPengeluaran.setOnClickListener(v -> {
-            new SavingDialogFragment(selectedStoreId).show(getParentFragmentManager(), "saving_dialog");
+            new ExpenseDialogFragment(selectedStoreId).show(getParentFragmentManager(), "expense_dialog");
         });
     }
 

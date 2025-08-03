@@ -80,6 +80,9 @@ public interface ProductDao {
     @Query("SELECT * FROM products WHERE isActive = 1 AND storeId = :storeId ORDER BY name ASC")
     LiveData<List<Product>> getAllActiveProductsByStore(int storeId);
     
+    @Query("SELECT * FROM products WHERE isActive = 1 AND storeId = :storeId ORDER BY name ASC")
+    List<Product> getAllActiveProductsByStoreSync(int storeId);
+    
     @Query("SELECT COUNT(*) FROM products WHERE isActive = 1 AND storeId = :storeId")
     LiveData<Integer> getActiveProductCountByStore(int storeId);
     

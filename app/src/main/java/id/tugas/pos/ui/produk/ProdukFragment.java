@@ -9,6 +9,7 @@ import android.widget.Toast;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +35,7 @@ import id.tugas.pos.ui.produk.dialog.AddCategoryDialog;
 import id.tugas.pos.utils.CurrencyUtils;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.viewmodel.StoreViewModel;
+import id.tugas.pos.viewmodel.SyncViewModel;
 import id.tugas.pos.ui.MainActivity;
 
 public class ProdukFragment extends Fragment implements ProductAdapter.OnProductClickListener {
@@ -51,8 +53,10 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     private List<Product> allProducts = new ArrayList<>();
     private LoginViewModel loginViewModel;
     private StoreViewModel storeViewModel;
+    private SyncViewModel syncViewModel;
     private AlertDialog currentDialog; // Tambahkan field untuk menyimpan dialog
     private MainActivity mainActivity;
+    private Button btnSync; // Tambahkan tombol sinkronisasi
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -71,7 +75,9 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         setupFab();
         loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
         storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
+        syncViewModel = new ViewModelProvider(requireActivity()).get(SyncViewModel.class);
         setupStoreDropdown();
+        setupSyncButton();
         observeData();
         // Show store spinner by default, only hide for non-admin users
         if (!loginViewModel.isAdmin()) {
@@ -89,6 +95,7 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         fabAddCategoryMenu = view.findViewById(R.id.fab_add_category_menu);
         labelAddProduct = view.findViewById(R.id.label_add_product);
         labelAddCategory = view.findViewById(R.id.label_add_category);
+        btnSync = view.findViewById(R.id.btn_sync_products); // Tambahkan tombol sinkronisasi
         
         // Null check untuk recyclerView
         if (recyclerView == null) {
@@ -155,6 +162,32 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
             labelAddCategory.setVisibility(View.GONE);
             showAddCategoryDialog();
         });
+    }
+    
+    private void setupSyncButton() {
+        if (btnSync != null) {
+            btnSync.setOnClickListener(v -> {
+                Integer currentStoreId = storeViewModel.getSelectedStoreId().getValue();
+                if (currentStoreId != null) {
+                    syncViewModel.syncDataForStore(currentStoreId);
+                    Toast.makeText(requireContext(), "Memulai sinkronisasi data...", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(requireContext(), "Pilih toko terlebih dahulu", Toast.LENGTH_SHORT).show();
+                }
+            });
+            
+            // Observe sync status
+            syncViewModel.getIsSyncing().observe(getViewLifecycleOwner(), isSyncing -> {
+                btnSync.setEnabled(!isSyncing);
+                btnSync.setText(isSyncing ? "Sinkronisasi..." : "Sinkronisasi");
+            });
+            
+            syncViewModel.getSyncStatus().observe(getViewLifecycleOwner(), status -> {
+                if (status != null && !status.isEmpty()) {
+                    Toast.makeText(requireContext(), status, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
     
     private void toggleArcMenu() {
@@ -272,6 +305,22 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
                 });
             }
         });
+
+        // Observe error messages from ViewModel
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                android.util.Log.e("ProdukFragment", "ViewModel error: " + error);
+                if (isAdded() && getContext() != null) {
+                    Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        // Observe loading state
+        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            // You can show/hide progress indicator here if needed
+            android.util.Log.d("ProdukFragment", "Loading state: " + isLoading);
+        });
     }
 
     private void filterProducts(String query) {
@@ -309,15 +358,46 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void showEditProductDialog(Product product) {
-        // Get current storeId
-        Integer currentStoreId = storeViewModel.getSelectedStoreId().getValue();
-        
-        AddEditProductDialog dialog = AddEditProductDialog.newInstance(product, currentStoreId);
-        dialog.setOnProductSavedListener(updatedProduct -> {
-            viewModel.updateProduct(updatedProduct);
-            Toast.makeText(requireContext(), "Produk berhasil diperbarui", Toast.LENGTH_SHORT).show();
-        });
-        dialog.show(getChildFragmentManager(), "EditProductDialog");
+        // Validate context first
+        if (!isAdded() || getContext() == null) {
+            android.util.Log.e("ProdukFragment", "Context is null or fragment not attached");
+            return;
+        }
+
+        try {
+            // Get current storeId
+            Integer currentStoreId = storeViewModel.getSelectedStoreId().getValue();
+            
+            AddEditProductDialog dialog = AddEditProductDialog.newInstance(product, currentStoreId);
+            dialog.setOnProductSavedListener(updatedProduct -> {
+                try {
+                    // Validate context before updating
+                    if (isAdded() && getContext() != null) {
+                        viewModel.updateProduct(updatedProduct);
+                        Toast.makeText(requireContext(), "Produk berhasil diperbarui", Toast.LENGTH_SHORT).show();
+                    } else {
+                        android.util.Log.e("ProdukFragment", "Context is null when updating product");
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("ProdukFragment", "Error updating product: " + e.getMessage());
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(requireContext(), "Gagal memperbarui produk: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+            
+            // Show dialog with error handling
+            if (getChildFragmentManager() != null) {
+                dialog.show(getChildFragmentManager(), "EditProductDialog");
+            } else {
+                android.util.Log.e("ProdukFragment", "ChildFragmentManager is null");
+            }
+        } catch (Exception e) {
+            android.util.Log.e("ProdukFragment", "Error showing edit dialog: " + e.getMessage());
+            if (isAdded() && getContext() != null) {
+                Toast.makeText(requireContext(), "Gagal membuka dialog edit: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void showDeleteConfirmationDialog(Product product) {

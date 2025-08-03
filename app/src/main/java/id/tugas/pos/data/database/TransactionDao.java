@@ -93,4 +93,7 @@ public interface TransactionDao {
     
     @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND createdAt BETWEEN :startDate AND :endDate AND storeId = :storeId")
     LiveData<Double> getRevenueByDateRangeAndStore(long startDate, long endDate, int storeId);
+    
+    @Query("SELECT * FROM transactions ORDER BY createdAt DESC")
+    List<Transaction> getAllTransactionsSync();
 } 

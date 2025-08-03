@@ -237,31 +237,33 @@ public class TransaksiViewModel extends AndroidViewModel {
     }
 
     private void updateProductStock(TransactionItem item) {
+        // Use the direct decreaseStock method from ProductDao for atomic operation
         productRepository.getProductById(item.getProductId(), new ProductRepository.OnProductSearchListener() {
             @Override
             public void onSuccess(List<Product> products) {
                 if (!products.isEmpty()) {
                     Product product = products.get(0);
-                    int newStock = product.getStock() - item.getQuantity();
-                    if (newStock >= 0) {
-                        product.setStock(newStock);
-                        productRepository.updateProduct(product, new ProductRepository.OnProductOperationListener() {
+                    // Validate stock before decreasing
+                    if (product.getStock() >= item.getQuantity()) {
+                        // Use atomic decreaseStock operation
+                        productRepository.decreaseStock(item.getProductId(), item.getQuantity(), new ProductRepository.OnProductOperationListener() {
                             @Override
                             public void onSuccess() {
-                                Log.d(TAG, "updateProductStock: Stock updated successfully for product " + product.getName() + 
-                                      " (ID: " + product.getId() + "). Old stock: " + (product.getStock() + item.getQuantity()) + 
-                                      ", New stock: " + product.getStock() + ", Quantity sold: " + item.getQuantity());
+                                Log.d(TAG, "updateProductStock: Stock decreased successfully for product " + product.getName() + 
+                                      " (ID: " + product.getId() + "). Old stock: " + product.getStock() + 
+                                      ", Quantity sold: " + item.getQuantity() + ", New stock: " + (product.getStock() - item.getQuantity()));
                             }
 
                             @Override
                             public void onError(String error) {
+                                Log.e(TAG, "updateProductStock: Failed to decrease stock: " + error);
                                 mainHandler.post(() -> {
                                     errorMessage.setValue("Gagal update stok: " + error);
                                 });
                             }
                         });
                     } else {
-                        Log.e(TAG, "updateProductStock: Cannot update stock - insufficient stock for product " + product.getName() + 
+                        Log.e(TAG, "updateProductStock: Insufficient stock for product " + product.getName() + 
                               " (ID: " + product.getId() + "). Current stock: " + product.getStock() + ", Requested quantity: " + item.getQuantity());
                         mainHandler.post(() -> {
                             errorMessage.setValue("Stok tidak mencukupi untuk produk " + product.getName());

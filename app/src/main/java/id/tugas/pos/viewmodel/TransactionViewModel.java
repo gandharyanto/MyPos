@@ -158,6 +158,32 @@ public class TransactionViewModel extends AndroidViewModel {
         isLoading.setValue(true);
         executorService.execute(() -> {
             try {
+                // Validate stock for all items before processing transaction
+                boolean stockValid = true;
+                String errorMsg = "";
+                
+                for (TransactionItem item : currentCart) {
+                    LiveData<Product> productLiveData = productRepository.getProductById(item.getProductId());
+                    Product product = productLiveData.getValue();
+                    if (product == null) {
+                        stockValid = false;
+                        errorMsg = "Produk tidak ditemukan";
+                        break;
+                    }
+                    if (product.getStock() < item.getQuantity()) {
+                        stockValid = false;
+                        errorMsg = "Stok tidak mencukupi untuk " + product.getName() + 
+                                  " (tersedia: " + product.getStock() + ", dibutuhkan: " + item.getQuantity() + ")";
+                        break;
+                    }
+                }
+                
+                if (!stockValid) {
+                    errorMessage.postValue(errorMsg);
+                    isLoading.postValue(false);
+                    return;
+                }
+
                 // Create transaction
                 Transaction transaction = new Transaction();
                 transaction.setTotalAmount(total);
@@ -169,19 +195,19 @@ public class TransactionViewModel extends AndroidViewModel {
 
                 long transactionId = transactionRepository.insertTransaction(transaction);
 
-                // Add transaction items
+                if (transactionId == -1) {
+                    errorMessage.postValue("Gagal membuat transaksi");
+                    isLoading.postValue(false);
+                    return;
+                }
+
+                // Add transaction items and update stock
                 for (TransactionItem item : currentCart) {
                     item.setTransactionId((int) transactionId);
                     item.setCreatedAt(System.currentTimeMillis());
+                    
+                    // Use the repository method that handles both transaction item and stock update
                     transactionRepository.insertTransactionItem(item);
-
-                    // Update product stock
-                    LiveData<Product> productLiveData = productRepository.getProductById(item.getProductId());
-                    Product product = productLiveData.getValue();
-                    if (product != null) {
-                        product.setStock(product.getStock() - item.getQuantity());
-                        productRepository.update(product);
-                    }
                 }
 
                 // Clear cart

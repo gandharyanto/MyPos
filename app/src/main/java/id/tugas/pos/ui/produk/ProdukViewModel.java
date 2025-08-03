@@ -62,22 +62,34 @@ public class ProdukViewModel extends AndroidViewModel {
 
     public void updateProduct(Product product) {
         isLoading.setValue(true);
-        repository.updateProduct(product, new ProductRepository.OnProductOperationListener() {
-            @Override
-            public void onSuccess() {
-                mainHandler.post(() -> {
-                    isLoading.setValue(false);
-                });
-            }
+        errorMessage.setValue(null); // Clear previous errors
+        
+        try {
+            repository.updateProduct(product, new ProductRepository.OnProductOperationListener() {
+                @Override
+                public void onSuccess() {
+                    mainHandler.post(() -> {
+                        isLoading.setValue(false);
+                        android.util.Log.d("ProdukViewModel", "Product updated successfully: " + product.getName());
+                    });
+                }
 
-            @Override
-            public void onError(String error) {
-                mainHandler.post(() -> {
-                    isLoading.setValue(false);
-                    errorMessage.setValue(error);
-                });
-            }
-        });
+                @Override
+                public void onError(String error) {
+                    mainHandler.post(() -> {
+                        isLoading.setValue(false);
+                        errorMessage.setValue("Gagal memperbarui produk: " + error);
+                        android.util.Log.e("ProdukViewModel", "Error updating product: " + error);
+                    });
+                }
+            });
+        } catch (Exception e) {
+            mainHandler.post(() -> {
+                isLoading.setValue(false);
+                errorMessage.setValue("Terjadi kesalahan: " + e.getMessage());
+                android.util.Log.e("ProdukViewModel", "Exception updating product: " + e.getMessage());
+            });
+        }
     }
 
     public void deleteProduct(Product product) {

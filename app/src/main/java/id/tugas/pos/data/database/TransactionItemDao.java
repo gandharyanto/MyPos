@@ -54,19 +54,27 @@ public interface TransactionItemDao {
     @Query("SELECT * FROM transaction_items WHERE transactionId = :transactionId")
     List<TransactionItem> getItemsByTransactionId(long transactionId);
     
+    @Query("SELECT * FROM transaction_items")
+    List<TransactionItem> getAllTransactionItemsSync();
+    
     @Query("DELETE FROM transaction_items WHERE transactionId = :transactionId")
     void deleteTransactionItemsByTransactionId(int transactionId);
     
     @Query("SELECT productId, SUM(quantity) as totalQuantity FROM transaction_items GROUP BY productId ORDER BY totalQuantity DESC LIMIT :limit")
     LiveData<List<ProductSalesSummary>> getTopSellingProducts(int limit);
     
-    @Query("SELECT productName as namaProduk, SUM(quantity) as jumlahTerjual, SUM(subtotal) as totalHarga " +
+    @Query("SELECT productName as namaProduk, SUM(quantity) as jumlahTerjual, SUM(total) as totalHarga " +
            "FROM transaction_items " +
            "WHERE createdAt BETWEEN :startDate AND :endDate " +
            "GROUP BY productName")
     List<LaporanTransaksiItem> getLaporanTransaksi(long startDate, long endDate);
     
-    @Query("SELECT ti.productName as namaProduk, SUM(ti.quantity) as jumlahTerjual, SUM(ti.subtotal) as totalHarga " +
+    @Query("SELECT productName as namaProduk, SUM(quantity) as jumlahTerjual, SUM(total) as totalHarga " +
+           "FROM transaction_items " +
+           "GROUP BY productName")
+    List<LaporanTransaksiItem> getLaporanTransaksiAll();
+    
+    @Query("SELECT ti.productName as namaProduk, SUM(ti.quantity) as jumlahTerjual, SUM(ti.total) as totalHarga " +
            "FROM transaction_items ti " +
            "INNER JOIN transactions t ON ti.transactionId = t.id " +
            "WHERE ti.createdAt BETWEEN :startDate AND :endDate " +

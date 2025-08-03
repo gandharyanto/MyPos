@@ -55,9 +55,15 @@ public class AddEditProductDialog extends DialogFragment {
         this.listener = listener;
     }
 
-    @NonNull
+    @Nullable
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        // Validate context first
+        if (getContext() == null) {
+            android.util.Log.e("AddEditProductDialog", "Context is null in onCreateDialog");
+            return super.onCreateDialog(savedInstanceState);
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_add_edit_product, null);
@@ -79,64 +85,95 @@ public class AddEditProductDialog extends DialogFragment {
     }
 
     private void initViews(View view) {
-        etProductName = view.findViewById(R.id.et_product_name);
-        etProductCode = view.findViewById(R.id.et_product_code);
-        etProductCost = view.findViewById(R.id.et_product_cost);
-        etProductPrice = view.findViewById(R.id.et_product_price);
-        etProductStock = view.findViewById(R.id.et_product_stock);
-        spinnerCategory = view.findViewById(R.id.spinner_product_category);
-        etProductUnit = view.findViewById(R.id.et_product_unit);
-        btnSave = view.findViewById(R.id.btn_save_product);
-        btnCancel = view.findViewById(R.id.btn_cancel_product);
-        tvProfitMargin = view.findViewById(R.id.tv_profit_margin);
-        
-        // Initialize image views
-        ivProductImage = view.findViewById(R.id.iv_product_image);
-        btnCamera = view.findViewById(R.id.btn_camera);
-        btnGallery = view.findViewById(R.id.btn_gallery);
-        
-        // Initialize ViewModels
-        productViewModel = new ViewModelProvider(requireActivity()).get(ProductViewModel.class);
-        categoryViewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
-        
-        // Setup category spinner
-        setupCategorySpinner();
+        try {
+            etProductName = view.findViewById(R.id.et_product_name);
+            etProductCode = view.findViewById(R.id.et_product_code);
+            etProductCost = view.findViewById(R.id.et_product_cost);
+            etProductPrice = view.findViewById(R.id.et_product_price);
+            etProductStock = view.findViewById(R.id.et_product_stock);
+            spinnerCategory = view.findViewById(R.id.spinner_product_category);
+            etProductUnit = view.findViewById(R.id.et_product_unit);
+            btnSave = view.findViewById(R.id.btn_save_product);
+            btnCancel = view.findViewById(R.id.btn_cancel_product);
+            tvProfitMargin = view.findViewById(R.id.tv_profit_margin);
+            
+            // Initialize image views
+            ivProductImage = view.findViewById(R.id.iv_product_image);
+            btnCamera = view.findViewById(R.id.btn_camera);
+            btnGallery = view.findViewById(R.id.btn_gallery);
+            
+            // Validate that all required views are found
+            if (etProductName == null || etProductCode == null || etProductCost == null || 
+                etProductPrice == null || etProductStock == null || spinnerCategory == null || 
+                etProductUnit == null || btnSave == null || btnCancel == null) {
+                android.util.Log.e("AddEditProductDialog", "Some required views are null");
+                return;
+            }
+            
+            // Initialize ViewModels
+            productViewModel = new ViewModelProvider(requireActivity()).get(ProductViewModel.class);
+            categoryViewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
+            
+            // Setup category spinner
+            setupCategorySpinner();
+            
+        } catch (Exception e) {
+            android.util.Log.e("AddEditProductDialog", "Error in initViews: " + e.getMessage());
+        }
     }
 
     private void setupListeners() {
-        btnSave.setOnClickListener(v -> saveProduct());
-        btnCancel.setOnClickListener(v -> dismiss());
-        
-        // Image selection listeners
-        btnCamera.setOnClickListener(v -> openCamera());
-        btnGallery.setOnClickListener(v -> openGallery());
-        
-        // Auto-calculate profit margin when cost or price changes
-        etProductCost.addTextChangedListener(new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            
-            @Override
-            public void afterTextChanged(android.text.Editable s) {
-                calculateProfitMargin();
+        try {
+            if (btnSave != null) {
+                btnSave.setOnClickListener(v -> saveProduct());
             }
-        });
-        
-        etProductPrice.addTextChangedListener(new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            
-            @Override
-            public void afterTextChanged(android.text.Editable s) {
-                calculateProfitMargin();
+            if (btnCancel != null) {
+                btnCancel.setOnClickListener(v -> dismiss());
             }
-        });
+            
+            // Image selection listeners
+            if (btnCamera != null) {
+                btnCamera.setOnClickListener(v -> openCamera());
+            }
+            
+            if (btnGallery != null) {
+                btnGallery.setOnClickListener(v -> openGallery());
+            }
+            
+            // Auto-calculate profit margin when cost or price changes
+            if (etProductCost != null) {
+                etProductCost.addTextChangedListener(new android.text.TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                    
+                    @Override
+                    public void afterTextChanged(android.text.Editable s) {
+                        calculateProfitMargin();
+                    }
+                });
+            }
+            
+            if (etProductPrice != null) {
+                etProductPrice.addTextChangedListener(new android.text.TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                    
+                    @Override
+                    public void afterTextChanged(android.text.Editable s) {
+                        calculateProfitMargin();
+                    }
+                });
+            }
+        } catch (Exception e) {
+            android.util.Log.e("AddEditProductDialog", "Error in setupListeners: " + e.getMessage());
+        }
     }
     
     private void setupCategorySpinner() {
@@ -237,6 +274,12 @@ public class AddEditProductDialog extends DialogFragment {
     }
 
     private void saveProduct() {
+        // Validate context first
+        if (!isAdded() || getContext() == null) {
+            android.util.Log.e("AddEditProductDialog", "Context is null or fragment not attached");
+            return;
+        }
+
         String name = etProductName.getText().toString().trim();
         String code = etProductCode.getText().toString().trim();
         String costStr = etProductCost.getText().toString().trim();
@@ -348,13 +391,26 @@ public class AddEditProductDialog extends DialogFragment {
                 }
             }
 
-            if (listener != null) {
-                listener.onProductSaved(product);
+            // Validate context again before calling listener
+            if (isAdded() && getContext() != null && listener != null) {
+                try {
+                    listener.onProductSaved(product);
+                    dismiss();
+                } catch (Exception e) {
+                    android.util.Log.e("AddEditProductDialog", "Error calling listener: " + e.getMessage());
+                    Toast.makeText(requireContext(), "Gagal menyimpan produk: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                android.util.Log.e("AddEditProductDialog", "Context is null or listener is null");
+                Toast.makeText(requireContext(), "Gagal menyimpan produk: Context tidak valid", Toast.LENGTH_SHORT).show();
             }
-            dismiss();
 
         } catch (NumberFormatException e) {
+            android.util.Log.e("AddEditProductDialog", "Number format error: " + e.getMessage());
             Toast.makeText(requireContext(), "Format angka tidak valid", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            android.util.Log.e("AddEditProductDialog", "Unexpected error: " + e.getMessage());
+            Toast.makeText(requireContext(), "Terjadi kesalahan: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
     

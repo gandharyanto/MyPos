@@ -19,6 +19,18 @@
             app:iconifiedByDefault="false"
             app:queryBackground="@null" />
 
+        <!-- Sync Button -->
+        <Button
+            android:id="@+id/btn_sync_products"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="Sinkronisasi Data"
+            android:textSize="12sp"
+            android:background="@drawable/bg_info_tag"
+            android:textColor="@color/primary" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view_products"
             android:layout_width="match_parent"

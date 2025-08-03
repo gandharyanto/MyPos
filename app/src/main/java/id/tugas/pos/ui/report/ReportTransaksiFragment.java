@@ -50,7 +50,15 @@ public class ReportTransaksiFragment extends Fragment {
         // Panggil loadLaporanTransaksi lebih dulu
         viewModel.loadLaporanTransaksi(startDate, endDate);
         // Baru observe LiveData
-        viewModel.getLaporanTransaksi().observe(getViewLifecycleOwner(), adapter::setData);
+        viewModel.getLaporanTransaksi().observe(getViewLifecycleOwner(), data -> {
+            android.util.Log.d("ReportTransaksiFragment", "Received data: " + (data != null ? data.size() : "null"));
+            if (data != null) {
+                for (LaporanTransaksiItem item : data) {
+                    android.util.Log.d("ReportTransaksiFragment", "Item: " + item.getNamaProduk() + " - " + item.getJumlahTerjual() + " - " + item.getTotalHarga());
+                }
+            }
+            adapter.setData(data);
+        });
 
         tvTanggalDipilih = view.findViewById(R.id.tvTanggalDipilih);
         Button btnFilterTanggal = view.findViewById(R.id.btnFilterTanggal);

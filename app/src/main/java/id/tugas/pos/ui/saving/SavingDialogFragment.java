@@ -31,6 +31,7 @@ public class SavingDialogFragment extends DialogFragment {
     private LoginViewModel loginViewModel;
     private ModalAwalRepository modalAwalRepository;
     private int storeId;
+    
     public SavingDialogFragment(int storeId) {
         this.storeId = storeId;
     }
@@ -39,67 +40,110 @@ public class SavingDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         if (storeId <= 0) {
-            Toast.makeText(getContext(), "Pilih toko terlebih dahulu!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Pilih toko terlebih dahulu!", Toast.LENGTH_SHORT).show();
             dismiss();
             return super.onCreateDialog(savedInstanceState);
         }
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_saving, null, false);
+        
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_saving, null, false);
         etNominal = view.findViewById(R.id.etNominal);
         etKeterangan = view.findViewById(R.id.etKeterangan);
         btnSimpan = view.findViewById(R.id.btnSimpan);
         spinnerTipePengeluaran = view.findViewById(R.id.spinnerTipePengeluaran);
+        
         // Setup spinner tipe pengeluaran
         String[] tipeArray = {"Operasional", "Saving"};
         ArrayAdapter<String> tipeAdapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item_black_text, tipeArray);
         tipeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
         spinnerTipePengeluaran.setAdapter(tipeAdapter);
+        
+        // Initialize ViewModels
         savingViewModel = new ViewModelProvider(requireActivity()).get(SavingViewModel.class);
         dashboardViewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
         loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
         modalAwalRepository = new ModalAwalRepository(requireActivity().getApplication());
-        btnSimpan.setOnClickListener(v -> {
-            int nominal = 0;
-            try { nominal = Integer.parseInt(etNominal.getText().toString()); } catch (Exception ignored) {}
-            if (nominal <= 0) {
-                Toast.makeText(getContext(), "Nominal harus > 0", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            final int finalNominal = nominal;
-            dashboardViewModel.getTodaySales().observe(this, todaySales -> {
-                double today = todaySales != null ? todaySales : 0.0;
-                if (finalNominal > today) {
-                    Toast.makeText(getContext(), "Nominal pengeluaran tidak boleh lebih dari pendapatan hari ini!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                String ket = etKeterangan.getText().toString();
-                String tipe = spinnerTipePengeluaran.getSelectedItem().toString();
-                Saving saving = new Saving();
-                saving.setAmount(finalNominal);
-                saving.setDescription(ket + " [" + tipe + "]");
-                saving.setSavingDate(System.currentTimeMillis());
-                saving.setStoreId(storeId); // set storeId ke saving
-                savingViewModel.insert(saving, () -> {
-                    // Logic modal awal jika tipe Saving
-                    if ("Saving".equalsIgnoreCase(tipe)) {
-                        if (finalNominal < today) {
-                            Calendar cal = Calendar.getInstance();
-                            cal.add(Calendar.DATE, 1);
-                            long besok = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH)+1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
-                            ModalAwal modalAwal = new ModalAwal();
-                            modalAwal.tanggal = besok;
-                            modalAwal.storeId = storeId;
-                            modalAwal.nominal = today - finalNominal;
-                            modalAwalRepository.insert(modalAwal);
-                        }
-                    }
-                    Toast.makeText(getContext(), "Pengeluaran berhasil disimpan", Toast.LENGTH_SHORT).show();
-                    dismiss();
-                });
-            });
-        });
+        
+        btnSimpan.setOnClickListener(v -> saveExpense());
+        
         Dialog dialog = new Dialog(requireContext());
         dialog.setContentView(view);
         dialog.setTitle("Pengeluaran/Tabung Kasir");
         return dialog;
+    }
+    
+    private void saveExpense() {
+        // Disable button to prevent multiple clicks
+        btnSimpan.setEnabled(false);
+        
+        // Get input values
+        String nominalStr = etNominal.getText().toString().trim();
+        String keterangan = etKeterangan.getText().toString().trim();
+        
+        // Validation
+        if (nominalStr.isEmpty()) {
+            etNominal.setError("Nominal harus diisi");
+            btnSimpan.setEnabled(true);
+            return;
+        }
+        
+        int nominal = 0;
+        try {
+            nominal = Integer.parseInt(nominalStr);
+        } catch (NumberFormatException e) {
+            etNominal.setError("Format nominal tidak valid");
+            btnSimpan.setEnabled(true);
+            return;
+        }
+        
+        if (nominal <= 0) {
+            etNominal.setError("Nominal harus lebih dari 0");
+            btnSimpan.setEnabled(true);
+            return;
+        }
+        
+        final int finalNominal = nominal;
+        final String finalKeterangan = keterangan.isEmpty() ? "Pengeluaran" : keterangan;
+        
+        // Check today's sales before saving
+        dashboardViewModel.getTodaySales().observe(this, todaySales -> {
+            double today = todaySales != null ? todaySales : 0.0;
+            
+            if (finalNominal > today) {
+                Toast.makeText(requireContext(), "Nominal pengeluaran tidak boleh lebih dari pendapatan hari ini!", Toast.LENGTH_SHORT).show();
+                btnSimpan.setEnabled(true);
+                return;
+            }
+            
+            // Create saving object
+            String tipe = spinnerTipePengeluaran.getSelectedItem().toString();
+            Saving saving = new Saving();
+            saving.setAmount(finalNominal);
+            saving.setDescription(finalKeterangan + " [" + tipe + "]");
+            saving.setSavingDate(System.currentTimeMillis());
+            saving.setStoreId(storeId);
+            
+            // Save to database
+            savingViewModel.insert(saving, () -> {
+                // Handle modal awal logic for Saving type
+                if ("Saving".equalsIgnoreCase(tipe)) {
+                    if (finalNominal < today) {
+                        Calendar cal = Calendar.getInstance();
+                        cal.add(Calendar.DATE, 1);
+                        long besok = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH)+1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
+                        ModalAwal modalAwal = new ModalAwal();
+                        modalAwal.tanggal = besok;
+                        modalAwal.storeId = storeId;
+                        modalAwal.nominal = today - finalNominal;
+                        modalAwalRepository.insert(modalAwal);
+                    }
+                }
+                
+                // Show success message and dismiss dialog
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(), "Pengeluaran berhasil disimpan", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                });
+            });
+        });
     }
 } 
