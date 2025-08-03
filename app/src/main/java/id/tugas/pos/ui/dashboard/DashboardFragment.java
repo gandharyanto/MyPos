@@ -36,7 +36,7 @@ public class DashboardFragment extends Fragment {
     
     // Quick action buttons
     private com.google.android.material.button.MaterialButton btnQuickTransaction, btnQuickProduct, btnQuickExpense;
-    private com.google.android.material.button.MaterialButton btnQuickStock, btnQuickCategory, btnQuickSaving;
+    private com.google.android.material.button.MaterialButton btnQuickStock, btnQuickCategory;
     
     @Nullable
     @Override
@@ -97,7 +97,6 @@ public class DashboardFragment extends Fragment {
         btnQuickExpense = view.findViewById(R.id.btn_quick_expense);
         btnQuickStock = view.findViewById(R.id.btn_quick_stock);
         btnQuickCategory = view.findViewById(R.id.btn_quick_category);
-        btnQuickSaving = view.findViewById(R.id.btn_quick_saving);
         
         // Setup quick action listeners
         setupQuickActions();
@@ -307,10 +306,7 @@ public class DashboardFragment extends Fragment {
             showAddCategoryDialog();
         });
         
-        // Quick Saving
-        btnQuickSaving.setOnClickListener(v -> {
-            showSavingDialog();
-        });
+
     }
     
     private void showAddCategoryDialog() {
@@ -325,17 +321,5 @@ public class DashboardFragment extends Fragment {
         dialog.show(getChildFragmentManager(), "AddCategoryDialog");
     }
     
-    private void showSavingDialog() {
-        // Show SavingDialog
-        User currentUser = loginViewModel.getCurrentUser().getValue();
-        Integer storeId = 1; // Default store ID
-        
-        if (currentUser != null && currentUser.getStoreId() != null) {
-            storeId = currentUser.getStoreId();
-        }
-        
-        id.tugas.pos.ui.saving.SavingDialogFragment dialog = 
-            new id.tugas.pos.ui.saving.SavingDialogFragment(storeId);
-        dialog.show(getChildFragmentManager(), "SavingDialog");
-    }
+
 } 

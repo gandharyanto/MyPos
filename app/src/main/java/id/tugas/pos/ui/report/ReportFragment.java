@@ -42,8 +42,7 @@ public class ReportFragment extends Fragment {
             switch (position) {
                 case 0: tab.setText("Transaksi"); break;
                 case 1: tab.setText("Pengeluaran"); break;
-                case 2: tab.setText("Saving"); break;
-                case 3: tab.setText("Stok"); break;
+                case 2: tab.setText("Stok"); break;
             }
         }).attach();
 

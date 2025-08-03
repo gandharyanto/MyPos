@@ -118,7 +118,7 @@
     <string name="expense_date">Tanggal</string>
     <string name="expense_receipt">Bukti Pengeluaran</string>
     <string name="expense_operational">Operasional</string>
-    <string name="expense_saving">Saving</string>
+
     
     <!-- Report -->
     <string name="report_title">Laporan dan Analisis</string>

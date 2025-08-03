@@ -15,14 +15,13 @@ public class ReportPagerAdapter extends FragmentStateAdapter {
         switch (position) {
             case 0: return new ReportTransaksiFragment();
             case 1: return new ReportPengeluaranFragment();
-            case 2: return new ReportSavingFragment();
-            case 3: return new ReportStokFragment();
+            case 2: return new ReportStokFragment();
             default: return new ReportTransaksiFragment();
         }
     }
 
     @Override
     public int getItemCount() {
-        return 4;
+        return 3;
     }
 } 

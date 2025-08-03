@@ -10,6 +10,5 @@
     
     <string-array name="expense_categories">
         <item>Operasional</item>
-        <item>Saving</item>
     </string-array>
 </resources> 

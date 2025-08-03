@@ -213,7 +213,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             "Tambah Kategori",
             "Tambah Pengeluaran",
             "Tambah Stok Masuk",
-            "Tambah Saving",
             "Cek Stok"
         };
         
@@ -235,10 +234,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     case 3: // Tambah Stok Masuk
                         showStockInDialog();
                         break;
-                    case 4: // Tambah Saving
-                        showSavingDialog();
-                        break;
-                    case 5: // Cek Stok
+                    case 4: // Cek Stok
                         showStockCheckDialog();
                         break;
                 }
@@ -264,14 +260,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dialog.show(getSupportFragmentManager(), "StockInDialog");
     }
     
-    private void showSavingDialog() {
-        // Show SavingDialog - need storeId
-        Integer storeId = loginViewModel.getCurrentUser().getValue() != null ? 
-            loginViewModel.getCurrentUser().getValue().getStoreId() : 1;
-        id.tugas.pos.ui.saving.SavingDialogFragment dialog = 
-            new id.tugas.pos.ui.saving.SavingDialogFragment(storeId);
-        dialog.show(getSupportFragmentManager(), "SavingDialog");
-    }
+
     
     private void showStockCheckDialog() {
         // Show stock check dialog
