@@ -46,6 +46,7 @@ public class LoginViewModel extends AndroidViewModel {
         int userId = prefs.getInt(KEY_USER_ID, -1);
         Log.d(TAG, "Constructor: Loaded userId from prefs: " + userId);
         if (userId != -1) {
+            Log.d(TAG, "Constructor: Attempting to restore session for userId: " + userId);
             userRepository.getUserById(userId).observeForever(user -> {
                 Log.d(TAG, "Session restore: user loaded from DB: " + new Gson().toJson(user));
                 if (user != null) {
@@ -54,8 +55,15 @@ public class LoginViewModel extends AndroidViewModel {
                 } else {
                     Log.d(TAG, "Session restore: user is null, clearing session");
                     currentUser.setValue(null);
+                    // Clear invalid session
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.remove(KEY_USER_ID);
+                    editor.apply();
+                    Log.d(TAG, "Session restore: Invalid session cleared");
                 }
             });
+        } else {
+            Log.d(TAG, "Constructor: No session found in prefs");
         }
     }
     

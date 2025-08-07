@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import id.tugas.pos.data.database.PosDatabase;
 import id.tugas.pos.data.database.ProductDao;
 import id.tugas.pos.data.database.StockInDao;
+import id.tugas.pos.data.database.TransactionItemDao;
 import id.tugas.pos.data.model.Product;
 import id.tugas.pos.data.model.StockIn;
 import java.util.List;
@@ -72,14 +73,21 @@ public class DatabaseSyncManager {
             int totalStockOut = getTotalStockOutForProduct(product.getId());
             
             // Calculate current stock
-            int currentStock = totalStockIn - totalStockOut;
+            int calculatedStock = totalStockIn - totalStockOut;
             
-            // Update product stock
-            productDao.updateStock(product.getId(), currentStock);
-            
-            Log.d(TAG, "Updated stock for product " + product.getName() + 
-                  ": StockIn=" + totalStockIn + ", StockOut=" + totalStockOut + 
-                  ", CurrentStock=" + currentStock);
+            // Only update stock if we have stock-in data or if calculated stock is positive
+            // This prevents setting stock to 0 when there's no stock-in data
+            if (totalStockIn > 0 || calculatedStock > 0) {
+                productDao.updateStock(product.getId(), calculatedStock);
+                Log.d(TAG, "Updated stock for product " + product.getName() + 
+                      ": StockIn=" + totalStockIn + ", StockOut=" + totalStockOut + 
+                      ", UpdatedStock=" + calculatedStock);
+            } else {
+                // Keep existing stock if no stock-in data and calculated stock would be 0 or negative
+                Log.d(TAG, "Skipped stock update for product " + product.getName() + 
+                      " (no stock-in data): StockIn=" + totalStockIn + ", StockOut=" + totalStockOut + 
+                      ", KeepingCurrentStock=" + product.getStock());
+            }
         }
     }
     
@@ -91,9 +99,21 @@ public class DatabaseSyncManager {
     }
     
     private int getTotalStockOutForProduct(int productId) {
-        // This should calculate total stock out from transactions
-        // For now, return 0 as placeholder
-        return 0;
+        // Calculate total stock out from transaction items
+        try {
+            // Get TransactionItemDao from database
+            TransactionItemDao transactionItemDao = database.transactionItemDao();
+            
+            // Query to get total quantity sold for this product
+            // We need to add this method to TransactionItemDao
+            int totalStockOut = transactionItemDao.getTotalQuantitySoldForProduct(productId);
+            
+            Log.d(TAG, "Total stock out for product " + productId + ": " + totalStockOut);
+            return totalStockOut;
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating stock out for product " + productId + ": " + e.getMessage());
+            return 0;
+        }
     }
     
     private void updateLastSyncTimestamp() {

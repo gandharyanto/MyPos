@@ -28,6 +28,12 @@ public interface ProductDao {
     @Query("SELECT * FROM products WHERE id = :id")
     LiveData<Product> getProductById(int id);
     
+    @Query("SELECT * FROM products WHERE id = :id AND isActive = 1")
+    Product getProductByIdSync(int id);
+    
+    @Query("SELECT * FROM products WHERE id = :id")
+    Product getProductByIdAny(int id);
+    
     @Query("SELECT * FROM products WHERE barcode = :barcode AND isActive = 1")
     LiveData<Product> getProductByBarcode(String barcode);
     
@@ -57,6 +63,9 @@ public interface ProductDao {
     
     @Query("UPDATE products SET stock = stock - :quantity WHERE id = :productId")
     void decreaseStock(int productId, int quantity);
+    
+    @Query("UPDATE products SET stock = stock - :quantity WHERE id = :productId")
+    int decreaseStockWithReturn(int productId, int quantity);
     
     @Query("UPDATE products SET stock = stock + :quantity WHERE id = :productId")
     void increaseStock(int productId, int quantity);
@@ -97,4 +106,14 @@ public interface ProductDao {
     
     @Query("SELECT name as namaProduk, 0 as stokMasuk, 0 as stokKeluar, stock as stokTersisa FROM products WHERE isActive = 1 AND storeId = :storeId ORDER BY name ASC")
     List<LaporanStokItem> getLaporanStokTersisaByStore(int storeId);
+    
+    // Method to force refresh of product data (triggers LiveData observers)
+    // Update all products to ensure all LiveData observers are notified
+    @Query("UPDATE products SET updatedAt = :timestamp WHERE isActive = 1")
+    void refreshProductData(long timestamp);
+    
+    // Overloaded method with current timestamp
+    default void refreshProductData() {
+        refreshProductData(System.currentTimeMillis());
+    }
 } 

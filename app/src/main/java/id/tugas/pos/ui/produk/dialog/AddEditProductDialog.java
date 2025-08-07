@@ -72,8 +72,7 @@ public class AddEditProductDialog extends DialogFragment {
         setupListeners();
         
         if (productToEdit != null) {
-            // Edit mode
-            populateFields();
+            // Edit mode - populateFields() will be called after category spinner is initialized
             builder.setTitle("Edit Produk");
         } else {
             // Add mode
@@ -204,6 +203,11 @@ public class AddEditProductDialog extends DialogFragment {
                     adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
                     spinnerCategory.setAdapter(adapter);
                 }
+                
+                // Now that the adapter is set, populate fields if in edit mode
+                if (productToEdit != null) {
+                    populateFields();
+                }
             });
         } else {
             // If no storeId, show empty spinner
@@ -214,6 +218,11 @@ public class AddEditProductDialog extends DialogFragment {
             );
             adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
             spinnerCategory.setAdapter(adapter);
+            
+            // Now that the adapter is set, populate fields if in edit mode
+            if (productToEdit != null) {
+                populateFields();
+            }
         }
     }
     
@@ -280,6 +289,8 @@ public class AddEditProductDialog extends DialogFragment {
             return;
         }
 
+        android.util.Log.d("AddEditProductDialog", "saveProduct() called - Fragment attached: " + isAdded() + ", Context: " + (getContext() != null));
+
         String name = etProductName.getText().toString().trim();
         String code = etProductCode.getText().toString().trim();
         String costStr = etProductCost.getText().toString().trim();
@@ -287,6 +298,8 @@ public class AddEditProductDialog extends DialogFragment {
         String stockStr = etProductStock.getText().toString().trim();
         String category = spinnerCategory.getSelectedItem().toString();
         String unit = etProductUnit.getText().toString().trim();
+
+        android.util.Log.d("AddEditProductDialog", "Product data - Name: " + name + ", Code: " + code + ", Category: " + category);
 
         // Validation
         if (TextUtils.isEmpty(name)) {
@@ -344,6 +357,8 @@ public class AddEditProductDialog extends DialogFragment {
                 return;
             }
 
+            android.util.Log.d("AddEditProductDialog", "Validation passed, creating product object");
+
             Product product;
             if (productToEdit != null) {
                 // Update existing product
@@ -391,17 +406,21 @@ public class AddEditProductDialog extends DialogFragment {
                 }
             }
 
+            android.util.Log.d("AddEditProductDialog", "Product object created successfully");
+
             // Validate context again before calling listener
             if (isAdded() && getContext() != null && listener != null) {
+                android.util.Log.d("AddEditProductDialog", "Calling listener.onProductSaved()");
                 try {
                     listener.onProductSaved(product);
+                    android.util.Log.d("AddEditProductDialog", "Listener called successfully, dismissing dialog");
                     dismiss();
                 } catch (Exception e) {
-                    android.util.Log.e("AddEditProductDialog", "Error calling listener: " + e.getMessage());
+                    android.util.Log.e("AddEditProductDialog", "Error calling listener: " + e.getMessage(), e);
                     Toast.makeText(requireContext(), "Gagal menyimpan produk: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else {
-                android.util.Log.e("AddEditProductDialog", "Context is null or listener is null");
+                android.util.Log.e("AddEditProductDialog", "Context is null or listener is null - isAdded: " + isAdded() + ", Context: " + (getContext() != null) + ", Listener: " + (listener != null));
                 Toast.makeText(requireContext(), "Gagal menyimpan produk: Context tidak valid", Toast.LENGTH_SHORT).show();
             }
 
@@ -409,7 +428,7 @@ public class AddEditProductDialog extends DialogFragment {
             android.util.Log.e("AddEditProductDialog", "Number format error: " + e.getMessage());
             Toast.makeText(requireContext(), "Format angka tidak valid", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            android.util.Log.e("AddEditProductDialog", "Unexpected error: " + e.getMessage());
+            android.util.Log.e("AddEditProductDialog", "Unexpected error: " + e.getMessage(), e);
             Toast.makeText(requireContext(), "Terjadi kesalahan: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }

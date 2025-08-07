@@ -76,7 +76,7 @@
                 android:id="@+id/fab_add_product_menu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_product"
+                android:src="@drawable/ic_inventory"
                 app:backgroundTint="@color/primary"
                 app:tint="@color/white"
                 app:fabSize="mini" />

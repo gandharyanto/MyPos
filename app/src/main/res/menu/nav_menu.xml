@@ -9,12 +9,12 @@
             
         <item
             android:id="@+id/nav_products"
-            android:icon="@drawable/ic_product"
+            android:icon="@drawable/ic_inventory"
             android:title="Produk" />
             
         <item
             android:id="@+id/nav_transaction"
-            android:icon="@drawable/ic_transaction"
+            android:icon="@drawable/ic_cart"
             android:title="Transaksi" />
             
         <item

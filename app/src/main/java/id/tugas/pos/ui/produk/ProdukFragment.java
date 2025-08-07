@@ -33,12 +33,13 @@ import id.tugas.pos.ui.produk.adapter.ProductAdapter;
 import id.tugas.pos.ui.produk.dialog.AddEditProductDialog;
 import id.tugas.pos.ui.produk.dialog.AddCategoryDialog;
 import id.tugas.pos.utils.CurrencyUtils;
+import id.tugas.pos.utils.ProductRefreshManager;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.viewmodel.StoreViewModel;
 import id.tugas.pos.viewmodel.SyncViewModel;
 import id.tugas.pos.ui.MainActivity;
 
-public class ProdukFragment extends Fragment implements ProductAdapter.OnProductClickListener {
+public class ProdukFragment extends Fragment implements ProductAdapter.OnProductClickListener, ProductRefreshManager.ProductRefreshListener {
 
     private ProdukViewModel viewModel;
     private ProductAdapter adapter;
@@ -79,6 +80,9 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         setupStoreDropdown();
         setupSyncButton();
         observeData();
+        
+        // Register for product data change notifications
+        ProductRefreshManager.getInstance().addListener(this);
         // Show store spinner by default, only hide for non-admin users
         if (!loginViewModel.isAdmin()) {
             mainActivity.spinnerStore.setVisibility(View.GONE);
@@ -341,8 +345,23 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         
         AddEditProductDialog dialog = AddEditProductDialog.newInstance(null, currentStoreId);
         dialog.setOnProductSavedListener(product -> {
-            viewModel.addProduct(product);
-            Toast.makeText(requireContext(), "Produk berhasil ditambahkan", Toast.LENGTH_SHORT).show();
+            android.util.Log.d("ProdukFragment", "onProductSaved callback called for product: " + product.getName());
+            try {
+                // Validate context before calling viewModel
+                if (isAdded() && getContext() != null) {
+                    android.util.Log.d("ProdukFragment", "Context is valid, calling viewModel.addProduct()");
+                    viewModel.addProduct(product);
+                    Toast.makeText(requireContext(), "Produk berhasil ditambahkan", Toast.LENGTH_SHORT).show();
+                    android.util.Log.d("ProdukFragment", "Product added successfully");
+                } else {
+                    android.util.Log.e("ProdukFragment", "Context is null when adding product - isAdded: " + isAdded() + ", Context: " + (getContext() != null));
+                }
+            } catch (Exception e) {
+                android.util.Log.e("ProdukFragment", "Error adding product: " + e.getMessage(), e);
+                if (isAdded() && getContext() != null) {
+                    Toast.makeText(requireContext(), "Gagal menambahkan produk: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
         });
         dialog.show(getChildFragmentManager(), "AddProductDialog");
     }
@@ -450,6 +469,9 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
             currentDialog.dismiss();
             currentDialog = null;
         }
+        
+        // Unregister from product data change notifications
+        ProductRefreshManager.getInstance().removeListener(this);
     }
     
     @Override
@@ -459,6 +481,20 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         if (currentDialog != null && currentDialog.isShowing()) {
             currentDialog.dismiss();
             currentDialog = null;
+        }
+    }
+    
+    // Implementation of ProductRefreshManager.ProductRefreshListener
+    @Override
+    public void onProductDataChanged() {
+        android.util.Log.d("ProdukFragment", "onProductDataChanged: Received product data change notification");
+        
+        // Refresh product data in ViewModel
+        if (viewModel != null && isAdded() && getContext() != null) {
+            requireActivity().runOnUiThread(() -> {
+                android.util.Log.d("ProdukFragment", "onProductDataChanged: Refreshing product data via ViewModel");
+                viewModel.refreshProductData();
+            });
         }
     }
 } 

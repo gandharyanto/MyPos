@@ -56,6 +56,42 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Set full screen flags - hide all system UI
+        getWindow().setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN |
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN |
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+        );
+        
+        // For Android 9+ (API 28+), use edge-to-edge display
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            getWindow().getAttributes().layoutInDisplayCutoutMode = 
+                android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
+        
+        // Hide system UI completely
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // For Android 11+ (API 30+)
+            getWindow().getDecorView().getWindowInsetsController().hide(
+                android.view.WindowInsets.Type.statusBars() | 
+                android.view.WindowInsets.Type.navigationBars()
+            );
+        } else {
+            // For older Android versions
+            getWindow().getDecorView().setSystemUiVisibility(
+                android.view.View.SYSTEM_UI_FLAG_FULLSCREEN |
+                android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
+        
         setContentView(R.layout.activity_main);
         
         // Initialize ViewModel
@@ -68,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.d(TAG, "MainActivity: currentUser is null, navigating to login");
                 navigateToLogin();
             } else {
+                Log.d(TAG, "MainActivity: currentUser is not null, setting up user info");
                 currentUser = user;
                 setupUserInfo();
                 
@@ -229,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         break;
                     case 2: // Tambah Pengeluaran
                         loadFragment(new ExpenseFragment());
-                        getSupportActionBar().setTitle("Pengeluaran");
+                        getSupportActionBar().setTitle("Pengeluaran Kas Kecil");
                         break;
                     case 3: // Tambah Stok Masuk
                         showStockInDialog();
@@ -419,6 +456,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Ensure system UI stays hidden
+        hideSystemUI();
+    }
+    
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            hideSystemUI();
+        }
+    }
+    
+    private void hideSystemUI() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // For Android 11+ (API 30+)
+            getWindow().getDecorView().getWindowInsetsController().hide(
+                android.view.WindowInsets.Type.statusBars() | 
+                android.view.WindowInsets.Type.navigationBars()
+            );
+        } else {
+            // For older Android versions
+            getWindow().getDecorView().setSystemUiVisibility(
+                android.view.View.SYSTEM_UI_FLAG_FULLSCREEN |
+                android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
         }
     }
     

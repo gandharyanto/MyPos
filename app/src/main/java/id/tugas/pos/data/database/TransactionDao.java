@@ -41,7 +41,7 @@ public interface TransactionDao {
     
     @Query("SELECT * FROM transactions WHERE createdAt BETWEEN :startDate AND :endDate ORDER BY createdAt DESC")
     LiveData<List<Transaction>> getTransactionsByDateRange(long startDate, long endDate);
-    
+
     @Query("SELECT * FROM transactions WHERE paymentMethod = :paymentMethod ORDER BY createdAt DESC")
     LiveData<List<Transaction>> getTransactionsByPaymentMethod(String paymentMethod);
     
@@ -73,13 +73,13 @@ public interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY createdAt DESC LIMIT 50")
     LiveData<List<Transaction>> getRecentTransactions();
     
-    @Query("SELECT * FROM transactions WHERE DATE(createdAt/1000, 'unixepoch') = :date ORDER BY createdAt DESC")
+    @Query("SELECT * FROM transactions WHERE strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch')) = :date ORDER BY createdAt DESC")
     LiveData<List<Transaction>> getTransactionsByDate(String date);
-    
-    @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND DATE(createdAt/1000, 'unixepoch') = DATE('now')")
+
+    @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch')) = strftime('%Y-%m-%d', 'now')")
     LiveData<Double> getTodayRevenue();
     
-    @Query("SELECT COUNT(*) FROM transactions WHERE status = 'COMPLETED' AND DATE(createdAt/1000, 'unixepoch') = DATE('now')")
+    @Query("SELECT COUNT(*) FROM transactions WHERE status = 'COMPLETED' AND strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch')) = strftime('%Y-%m-%d', 'now')")
     LiveData<Integer> getTodayTransactionCount();
     
     @Query("SELECT * FROM transactions WHERE storeId = :storeId ORDER BY createdAt DESC")

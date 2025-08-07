@@ -20,6 +20,7 @@ import id.tugas.pos.data.repository.ProductRepository;
 import id.tugas.pos.data.repository.TransactionRepository;
 import id.tugas.pos.utils.PrinterUtils;
 import id.tugas.pos.utils.CurrencyUtils;
+import id.tugas.pos.utils.ProductRefreshManager;
 
 public class TransaksiViewModel extends AndroidViewModel {
 
@@ -188,36 +189,8 @@ public class TransaksiViewModel extends AndroidViewModel {
         transactionRepository.addTransaction(transaction, new TransactionRepository.OnTransactionOperationListener() {
             @Override
             public void onSuccess() {
-                // Add transaction items
-                for (TransactionItem item : items) {
-                    item.setTransactionId(transaction.getId());
-                    transactionRepository.addTransactionItem(item, new TransactionRepository.OnTransactionOperationListener() {
-                        @Override
-                        public void onSuccess() {
-                            // Update product stock
-                            updateProductStock(item);
-                        }
-
-                        @Override
-                        public void onError(String error) {
-                            mainHandler.post(() -> {
-                                errorMessage.setValue("Gagal menyimpan item transaksi: " + error);
-                            });
-                        }
-                    });
-                }
-                
-                // Print receipt with payment information
-                printReceipt(transaction, items);
-                
-                // Clear cart and refresh dashboard
-                mainHandler.post(() -> {
-                    clearCart();
-                    isLoading.setValue(false);
-                    
-                    // Refresh dashboard data
-                    refreshDashboardData();
-                });
+                // Process all transaction items and stock updates atomically
+                processTransactionItemsWithStockUpdate(transaction, items);
             }
 
             @Override
@@ -230,10 +203,102 @@ public class TransaksiViewModel extends AndroidViewModel {
         });
     }
     
+    private void processTransactionItemsWithStockUpdate(Transaction transaction, List<TransactionItem> items) {
+        // Use AtomicInteger to track completion of all items
+        final java.util.concurrent.atomic.AtomicInteger completedItems = new java.util.concurrent.atomic.AtomicInteger(0);
+        final java.util.concurrent.atomic.AtomicBoolean hasError = new java.util.concurrent.atomic.AtomicBoolean(false);
+        final int totalItems = items.size();
+        
+        Log.d(TAG, "processTransactionItemsWithStockUpdate: Processing " + totalItems + " items");
+        
+        for (TransactionItem item : items) {
+            item.setTransactionId(transaction.getId());
+            Log.d(TAG, "processTransactionItemsWithStockUpdate: Setting transaction ID " + transaction.getId() + " for item with product ID: " + item.getProductId());
+            
+            // Add transaction item first
+            transactionRepository.addTransactionItem(item, new TransactionRepository.OnTransactionOperationListener() {
+                @Override
+                public void onSuccess() {
+                    Log.d(TAG, "processTransactionItemsWithStockUpdate: Transaction item added successfully for product ID: " + item.getProductId());
+                    
+                    // Then update product stock atomically
+                    updateProductStockAtomic(item, new StockUpdateCallback() {
+                        @Override
+                        public void onStockUpdateComplete(boolean success, String error) {
+                            if (success) {
+                                Log.d(TAG, "processTransactionItemsWithStockUpdate: Stock updated successfully for product ID: " + item.getProductId());
+                                
+                                // Check if all items are completed
+                                int completed = completedItems.incrementAndGet();
+                                Log.d(TAG, "processTransactionItemsWithStockUpdate: Completed items: " + completed + "/" + totalItems);
+                                
+                                if (completed == totalItems && !hasError.get()) {
+                                    // All items processed successfully
+                                    onTransactionCompleteSuccess(transaction, items);
+                                }
+                            } else {
+                                Log.e(TAG, "processTransactionItemsWithStockUpdate: Stock update failed for product ID: " + item.getProductId() + ", Error: " + error);
+                                if (!hasError.getAndSet(true)) {
+                                    // First error encountered
+                                    mainHandler.post(() -> {
+                                        errorMessage.setValue("Gagal update stok: " + error);
+                                        isLoading.setValue(false);
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "processTransactionItemsWithStockUpdate: Failed to add transaction item for product ID: " + item.getProductId() + ", Error: " + error);
+                    if (!hasError.getAndSet(true)) {
+                        mainHandler.post(() -> {
+                            errorMessage.setValue("Gagal menyimpan item transaksi: " + error);
+                            isLoading.setValue(false);
+                        });
+                    }
+                }
+            });
+        }
+    }
+    
+    private void onTransactionCompleteSuccess(Transaction transaction, List<TransactionItem> items) {
+        Log.d(TAG, "onTransactionCompleteSuccess: All items processed successfully, completing transaction");
+        
+        // Print receipt with payment information
+        printReceipt(transaction, items);
+        
+        // Clear cart and refresh dashboard
+        mainHandler.post(() -> {
+            clearCart();
+            isLoading.setValue(false);
+            
+            // Refresh dashboard data
+            refreshDashboardData();
+            
+            Log.d(TAG, "onTransactionCompleteSuccess: Transaction completed successfully");
+        });
+    }
+    
+    // Callback interface for stock update completion
+    private interface StockUpdateCallback {
+        void onStockUpdateComplete(boolean success, String error);
+    }
+    
     private void refreshDashboardData() {
         Log.d(TAG, "refreshDashboardData: Refreshing dashboard data after transaction");
-        // Notify dashboard to refresh data
-        // This will be handled by the Fragment observing the ViewModel
+        // Force refresh product data to show updated stock levels
+        refreshProductData();
+        
+        // Notify all product-related UI components about data changes
+        ProductRefreshManager.getInstance().notifyProductDataChanged();
+    }
+    
+    public void refreshProductData() {
+        Log.d(TAG, "refreshProductData: Refreshing product data after transaction");
+        productRepository.refreshAllProducts();
     }
 
     private void updateProductStock(TransactionItem item) {
@@ -286,6 +351,57 @@ public class TransaksiViewModel extends AndroidViewModel {
             }
         });
     }
+    
+    private void updateProductStockAtomic(TransactionItem item, StockUpdateCallback callback) {
+        Log.d(TAG, "updateProductStockAtomic: Starting stock update for product ID: " + item.getProductId() + ", quantity: " + item.getQuantity());
+        
+        // Use the direct decreaseStock method from ProductDao for atomic operation
+        productRepository.getProductById(item.getProductId(), new ProductRepository.OnProductSearchListener() {
+            @Override
+            public void onSuccess(List<Product> products) {
+                if (!products.isEmpty()) {
+                    Product product = products.get(0);
+                    Log.d(TAG, "updateProductStockAtomic: Product found - Name: " + product.getName() + ", Current stock: " + product.getStock() + ", Required: " + item.getQuantity());
+                    
+                    // Validate stock before decreasing
+                    if (product.getStock() >= item.getQuantity()) {
+                        // Use atomic decreaseStock operation
+                        productRepository.decreaseStock(item.getProductId(), item.getQuantity(), new ProductRepository.OnProductOperationListener() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(TAG, "updateProductStockAtomic: Stock decreased successfully for product " + product.getName() + 
+                                      " (ID: " + product.getId() + "). Old stock: " + product.getStock() + 
+                                      ", Quantity sold: " + item.getQuantity() + ", New stock: " + (product.getStock() - item.getQuantity()));
+                                callback.onStockUpdateComplete(true, null);
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.e(TAG, "updateProductStockAtomic: Failed to decrease stock: " + error);
+                                callback.onStockUpdateComplete(false, "Gagal update stok: " + error);
+                            }
+                        });
+                    } else {
+                        String errorMsg = "Stok tidak mencukupi untuk produk " + product.getName() + 
+                                        " (tersedia: " + product.getStock() + ", dibutuhkan: " + item.getQuantity() + ")";
+                        Log.e(TAG, "updateProductStockAtomic: " + errorMsg);
+                        callback.onStockUpdateComplete(false, errorMsg);
+                    }
+                } else {
+                    String errorMsg = "Produk tidak ditemukan dengan ID: " + item.getProductId();
+                    Log.e(TAG, "updateProductStockAtomic: " + errorMsg);
+                    callback.onStockUpdateComplete(false, errorMsg);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                String errorMsg = "Gagal mendapatkan data produk: " + error;
+                Log.e(TAG, "updateProductStockAtomic: " + errorMsg);
+                callback.onStockUpdateComplete(false, errorMsg);
+            }
+        });
+    }
 
     private void printReceipt(Transaction transaction, List<TransactionItem> items) {
         // Print using PrinterUtils
@@ -294,5 +410,57 @@ public class TransaksiViewModel extends AndroidViewModel {
 
     public LiveData<List<Product>> getAllProductsByStore(int storeId) {
         return productRepository.getAllProductsByStore(storeId);
+    }
+    
+    // ========== HISTORY/REPORTING METHODS ==========
+    // Methods for transaction history and reporting (consolidated from TransactionViewModel)
+    
+    public LiveData<List<Transaction>> getRecentTransactions() {
+        return transactionRepository.getRecentTransactions();
+    }
+    
+    public LiveData<List<Transaction>> getTransactionsByStore(int storeId) {
+        return transactionRepository.getAllTransactionsByStore(storeId);
+    }
+    
+    public LiveData<List<Transaction>> getTransactionsByDate(String date) {
+        return transactionRepository.getTransactionsByDate(date);
+    }
+    
+    public LiveData<List<Transaction>> getTransactionsByDateRange(long startDate, long endDate) {
+        return transactionRepository.getTransactionsByDateRange(startDate, endDate);
+    }
+    
+    public LiveData<List<Transaction>> getTodayTransactions() {
+        return transactionRepository.getTransactionsByDate(
+            new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                .format(new java.util.Date())
+        );
+    }
+    
+    public void updateTransaction(Transaction transaction, TransactionRepository.OnTransactionOperationListener listener) {
+        isLoading.setValue(true);
+        transactionRepository.updateTransaction(transaction, new TransactionRepository.OnTransactionOperationListener() {
+            @Override
+            public void onSuccess() {
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                    if (listener != null) {
+                        listener.onSuccess();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                    errorMessage.setValue("Gagal mengupdate transaksi: " + error);
+                    if (listener != null) {
+                        listener.onError(error);
+                    }
+                });
+            }
+        });
     }
 } 

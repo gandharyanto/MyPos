@@ -13,3 +13,5 @@ pos_database-shm
 pos_database-wal
 app/debug/
 app/release/
+.idea/misc.xml
+.idea/compiler.xml

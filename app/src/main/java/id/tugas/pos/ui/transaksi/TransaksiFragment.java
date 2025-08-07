@@ -356,6 +356,51 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         } catch (Exception e) {
             Log.e(TAG, "refreshDashboardData: Error refreshing dashboard", e);
         }
+        
+        // Also refresh product list to show updated stock levels
+        refreshProductList();
+    }
+    
+    private void refreshProductList() {
+        Log.d(TAG, "refreshProductList: Refreshing product list to show updated stock");
+        try {
+            // Force refresh product data in ViewModel
+            viewModel.refreshProductData();
+            
+            // Re-observe product data to get fresh data from database
+            loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
+                if (user != null) {
+                    Integer storeId;
+                    if (user.isAdmin()) {
+                        // For admin, get current selected store
+                        Integer selectedStoreId = storeViewModel.getSelectedStoreId().getValue();
+                        storeId = selectedStoreId;
+                    } else {
+                        // For regular user, use their assigned store
+                        storeId = user.getStoreId();
+                    }
+                    
+                    if (storeId != null) {
+                        Log.d(TAG, "refreshProductList: Re-loading products for store: " + storeId);
+                        viewModel.getAllProductsByStore(storeId).observe(getViewLifecycleOwner(), products -> {
+                            if (products != null) {
+                                Log.d(TAG, "refreshProductList: Fresh products loaded: " + products.size());
+                                allProducts = products;
+                                productAdapter.submitList(new ArrayList<>(products)); // Create new list to force refresh
+                                
+                                // Also refresh filtered list if search is active
+                                if (searchView != null && !searchView.getQuery().toString().isEmpty()) {
+                                    filterProducts(searchView.getQuery().toString());
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            
+        } catch (Exception e) {
+            Log.e(TAG, "refreshProductList: Error refreshing product list", e);
+        }
     }
 
     private void showClearCartDialog() {

@@ -41,20 +41,25 @@ public class ProdukViewModel extends AndroidViewModel {
     }
 
     public void addProduct(Product product) {
+        android.util.Log.d("ProdukViewModel", "addProduct() called for product: " + product.getName());
         isLoading.setValue(true);
         repository.addProduct(product, new ProductRepository.OnProductOperationListener() {
             @Override
             public void onSuccess() {
+                android.util.Log.d("ProdukViewModel", "Product added successfully in repository");
                 mainHandler.post(() -> {
                     isLoading.setValue(false);
+                    android.util.Log.d("ProdukViewModel", "Loading state set to false");
                 });
             }
 
             @Override
             public void onError(String error) {
+                android.util.Log.e("ProdukViewModel", "Error adding product: " + error);
                 mainHandler.post(() -> {
                     isLoading.setValue(false);
                     errorMessage.setValue(error);
+                    android.util.Log.e("ProdukViewModel", "Error message set: " + error);
                 });
             }
         });
@@ -152,4 +157,10 @@ public class ProdukViewModel extends AndroidViewModel {
     public LiveData<List<Product>> getAllProductsByStore(int storeId) {
         return repository.getAllProductsByStore(storeId);
     }
-} 
+    
+    // Method to refresh product data (for UI refresh after transactions)
+    public void refreshProductData() {
+        android.util.Log.d("ProdukViewModel", "refreshProductData: Refreshing product data");
+        repository.refreshAllProducts();
+    }
+}

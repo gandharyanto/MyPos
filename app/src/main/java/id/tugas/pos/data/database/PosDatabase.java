@@ -51,12 +51,17 @@ public abstract class PosDatabase extends RoomDatabase {
     
     public static synchronized PosDatabase getInstance(Context context) {
         if (instance == null) {
+            android.util.Log.d("PosDatabase", "Creating new database instance");
             instance = Room.databaseBuilder(
                     context.getApplicationContext(),
                     PosDatabase.class,
                     DATABASE_NAME)
+                    .addMigrations(MIGRATION_10_11)
                     .fallbackToDestructiveMigration()
                     .build();
+            android.util.Log.d("PosDatabase", "Database instance created successfully");
+        } else {
+            android.util.Log.d("PosDatabase", "Using existing database instance");
         }
         return instance;
     }

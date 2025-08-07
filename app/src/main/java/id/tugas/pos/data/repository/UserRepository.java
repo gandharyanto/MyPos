@@ -18,10 +18,17 @@ public class UserRepository {
     private LiveData<Integer> activeUserCount;
     
     public UserRepository(Application application) {
-        PosDatabase database = PosDatabase.getInstance(application);
-        userDao = database.userDao();
-        allActiveUsers = userDao.getAllActiveUsers();
-        activeUserCount = userDao.getActiveUserCount();
+        try {
+            android.util.Log.d("UserRepository", "Initializing UserRepository");
+            PosDatabase database = PosDatabase.getInstance(application);
+            userDao = database.userDao();
+            allActiveUsers = userDao.getAllActiveUsers();
+            activeUserCount = userDao.getActiveUserCount();
+            android.util.Log.d("UserRepository", "UserRepository initialized successfully");
+        } catch (Exception e) {
+            android.util.Log.e("UserRepository", "Error initializing UserRepository: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to initialize UserRepository", e);
+        }
     }
     
     // Insert user

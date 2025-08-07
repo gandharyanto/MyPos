@@ -1,5 +1,6 @@
 package id.tugas.pos.data.repository;
 
+import android.util.Log;
 import android.app.Application;
 import androidx.lifecycle.LiveData;
 import java.util.List;
@@ -18,10 +19,17 @@ public class ProductRepository {
     private ExecutorService executorService;
     
     public ProductRepository(Application application) {
-        PosDatabase database = PosDatabase.getInstance(application);
-        productDao = database.productDao();
-        allProducts = productDao.getAllProducts();
-        executorService = Executors.newSingleThreadExecutor();
+        try {
+            android.util.Log.d("ProductRepository", "Initializing ProductRepository");
+            PosDatabase database = PosDatabase.getInstance(application);
+            productDao = database.productDao();
+            allProducts = productDao.getAllProducts();
+            executorService = Executors.newSingleThreadExecutor();
+            android.util.Log.d("ProductRepository", "ProductRepository initialized successfully");
+        } catch (Exception e) {
+            android.util.Log.e("ProductRepository", "Error initializing ProductRepository: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to initialize ProductRepository", e);
+        }
     }
     
     public LiveData<List<Product>> getAllProducts() {
@@ -77,12 +85,65 @@ public class ProductRepository {
         });
     }
     
-    public void decreaseStock(int productId, int quantity, OnProductOperationListener listener) {
+    public void getProductById(int productId, OnProductSearchListener listener) {
+        Log.d("ProductRepository", "getProductById: Searching for product with ID: " + productId);
         executorService.execute(() -> {
             try {
-                productDao.decreaseStock(productId, quantity);
-                listener.onSuccess();
+                // First check if product exists at all (without isActive filter)
+                Product productAny = productDao.getProductByIdAny(productId);
+                if (productAny != null) {
+                    Log.d("ProductRepository", "getProductById: Product exists in DB - Name: " + productAny.getName() + ", Stock: " + productAny.getStock() + ", isActive: " + productAny.isActive());
+                } else {
+                    Log.w("ProductRepository", "getProductById: Product does not exist in DB with ID: " + productId);
+                }
+                
+                // Then get product with isActive filter
+                Product product = productDao.getProductByIdSync(productId);
+                List<Product> products = new ArrayList<>();
+                if (product != null) {
+                    products.add(product);
+                    Log.d("ProductRepository", "getProductById: Active product found - Name: " + product.getName() + ", Stock: " + product.getStock());
+                } else {
+                    Log.w("ProductRepository", "getProductById: Active product not found with ID: " + productId);
+                }
+                listener.onSuccess(products);
             } catch (Exception e) {
+                Log.e("ProductRepository", "getProductById: Error: " + e.getMessage(), e);
+                listener.onError(e.getMessage());
+            }
+        });
+    }
+    
+    public void decreaseStock(int productId, int quantity, OnProductOperationListener listener) {
+        Log.d("ProductRepository", "decreaseStock: Starting stock decrease for product ID: " + productId + ", quantity: " + quantity);
+        executorService.execute(() -> {
+            try {
+                // Get product before update to log current stock
+                Product productBefore = productDao.getProductByIdSync(productId);
+                if (productBefore != null) {
+                    Log.d("ProductRepository", "decreaseStock: Product before update - Name: " + productBefore.getName() + ", Stock: " + productBefore.getStock());
+                } else {
+                    Log.w("ProductRepository", "decreaseStock: Product not found with ID: " + productId);
+                }
+                
+                // Perform the stock decrease
+                int rowsAffected = productDao.decreaseStockWithReturn(productId, quantity);
+                Log.d("ProductRepository", "decreaseStock: Rows affected: " + rowsAffected);
+                
+                if (rowsAffected > 0) {
+                    // Get product after update to verify the change
+                    Product productAfter = productDao.getProductByIdSync(productId);
+                    if (productAfter != null) {
+                        Log.d("ProductRepository", "decreaseStock: Product after update - Name: " + productAfter.getName() + ", Stock: " + productAfter.getStock());
+                    }
+                    Log.d("ProductRepository", "decreaseStock: Stock decreased successfully");
+                    listener.onSuccess();
+                } else {
+                    Log.e("ProductRepository", "decreaseStock: No rows affected - stock not decreased");
+                    listener.onError("No rows affected - stock not decreased");
+                }
+            } catch (Exception e) {
+                Log.e("ProductRepository", "decreaseStock: Exception occurred: " + e.getMessage(), e);
                 listener.onError(e.getMessage());
             }
         });
@@ -113,6 +174,22 @@ public class ProductRepository {
     
     public LiveData<List<String>> getAllCategoriesByStore(int storeId) {
         return productDao.getAllCategoriesByStore(storeId);
+    }
+    
+    public void refreshAllProducts() {
+        // Force refresh of all product data by invalidating cache
+        android.util.Log.d("ProductRepository", "refreshAllProducts: Forcing product data refresh");
+        // This will trigger observers to re-fetch data from database
+        executorService.execute(() -> {
+            try {
+                // Force database to refresh by touching the data
+                // This will cause LiveData observers to be notified
+                productDao.refreshProductData();
+                android.util.Log.d("ProductRepository", "refreshAllProducts: Product data refresh completed");
+            } catch (Exception e) {
+                android.util.Log.e("ProductRepository", "refreshAllProducts: Error refreshing product data: " + e.getMessage());
+            }
+        });
     }
     
     // Additional methods for ViewModel compatibility
@@ -151,12 +228,58 @@ public class ProductRepository {
     
     // Methods with callbacks
     public void addProduct(Product product, OnProductOperationListener listener) {
+        android.util.Log.d("ProductRepository", "addProduct() called for product: " + product.getName());
+        
+        if (executorService == null || executorService.isShutdown()) {
+            android.util.Log.e("ProductRepository", "ExecutorService is null or shutdown");
+            listener.onError("Database service tidak tersedia");
+            return;
+        }
+        
         executorService.execute(() -> {
             try {
+                android.util.Log.d("ProductRepository", "Executing addProduct in background thread");
+                
+                // Validate product data before inserting
+                if (product.getName() == null || product.getName().trim().isEmpty()) {
+                    android.util.Log.e("ProductRepository", "Product name is null or empty");
+                    listener.onError("Nama produk tidak boleh kosong");
+                    return;
+                }
+                
+                if (product.getBarcode() == null || product.getBarcode().trim().isEmpty()) {
+                    android.util.Log.e("ProductRepository", "Product barcode is null or empty");
+                    listener.onError("Kode produk tidak boleh kosong");
+                    return;
+                }
+                
+                if (product.getStock() < 0) {
+                    android.util.Log.e("ProductRepository", "Product stock is negative");
+                    listener.onError("Stok tidak boleh negatif");
+                    return;
+                }
+                
+                if (product.getPrice() < 0) {
+                    android.util.Log.e("ProductRepository", "Product price is negative");
+                    listener.onError("Harga tidak boleh negatif");
+                    return;
+                }
+                
+                android.util.Log.d("ProductRepository", "Product validation passed, inserting into database");
+                
+                // Check if database is accessible
+                if (productDao == null) {
+                    android.util.Log.e("ProductRepository", "ProductDao is null");
+                    listener.onError("Database tidak tersedia");
+                    return;
+                }
+                
                 productDao.insert(product);
+                android.util.Log.d("ProductRepository", "Product inserted successfully in database");
                 listener.onSuccess();
             } catch (Exception e) {
-                listener.onError(e.getMessage());
+                android.util.Log.e("ProductRepository", "Error adding product: " + e.getMessage(), e);
+                listener.onError("Gagal menambahkan produk: " + e.getMessage());
             }
         });
     }
@@ -229,21 +352,6 @@ public class ProductRepository {
         executorService.execute(() -> {
             try {
                 Product product = productDao.getProductByBarcode(code).getValue();
-                List<Product> products = new ArrayList<>();
-                if (product != null) {
-                    products.add(product);
-                }
-                listener.onSuccess(products);
-            } catch (Exception e) {
-                listener.onError(e.getMessage());
-            }
-        });
-    }
-    
-    public void getProductById(int id, OnProductSearchListener listener) {
-        executorService.execute(() -> {
-            try {
-                Product product = productDao.getProductById(id).getValue();
                 List<Product> products = new ArrayList<>();
                 if (product != null) {
                     products.add(product);

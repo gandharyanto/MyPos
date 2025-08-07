@@ -24,7 +24,10 @@
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true"
-            android:theme="@style/Theme.MyPOS.NoActionBar">
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.MyPOS.NoActionBar"
+            android:resizeableActivity="false"
+            android:supportsPictureInPicture="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -34,7 +37,10 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="false"
-            android:theme="@style/Theme.MyPOS" />
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.MyPOS"
+            android:resizeableActivity="false"
+            android:supportsPictureInPicture="false" />
     </application>
 
 </manifest>

@@ -86,6 +86,10 @@ public class TransactionRepository {
         return transactionDao.getTransactionsByDate(date);
     }
     
+    public LiveData<List<Transaction>> getTransactionsByDateRange(long startDate, long endDate) {
+        return transactionDao.getTransactionsByDateRange(startDate, endDate);
+    }
+    
     public List<TransactionItem> getTransactionItemsSync(long transactionId) {
         return transactionItemDao.getItemsByTransactionId(transactionId);
     }
@@ -100,10 +104,6 @@ public class TransactionRepository {
     
     public LiveData<Integer> getTodayTransactionCount() {
         return transactionDao.getTodayTransactionCount();
-    }
-    
-    public LiveData<List<Transaction>> getTransactionsByDateRange(long startDate, long endDate) {
-        return transactionDao.getTransactionsByDateRange(startDate, endDate);
     }
     
     public LiveData<Double> getRevenueByDateRange(long startDate, long endDate) {
@@ -236,9 +236,13 @@ public class TransactionRepository {
     public void addTransaction(Transaction transaction, OnTransactionOperationListener listener) {
         executorService.execute(() -> {
             try {
-                transactionDao.insert(transaction);
+                long transactionId = transactionDao.insert(transaction);
+                // Set the generated ID back to the transaction object
+                transaction.setId((int) transactionId);
+                android.util.Log.d("TransactionRepository", "Transaction inserted with ID: " + transactionId);
                 listener.onSuccess();
             } catch (Exception e) {
+                android.util.Log.e("TransactionRepository", "Error inserting transaction: " + e.getMessage());
                 listener.onError(e.getMessage());
             }
         });
@@ -247,9 +251,13 @@ public class TransactionRepository {
     public void addTransactionItem(TransactionItem item, OnTransactionOperationListener listener) {
         executorService.execute(() -> {
             try {
+                android.util.Log.d("TransactionRepository", "Inserting transaction item - Product ID: " + item.getProductId() + 
+                                 ", Transaction ID: " + item.getTransactionId() + ", Quantity: " + item.getQuantity());
                 transactionItemDao.insert(item);
+                android.util.Log.d("TransactionRepository", "Transaction item inserted successfully");
                 listener.onSuccess();
             } catch (Exception e) {
+                android.util.Log.e("TransactionRepository", "Error inserting transaction item: " + e.getMessage());
                 listener.onError(e.getMessage());
             }
         });

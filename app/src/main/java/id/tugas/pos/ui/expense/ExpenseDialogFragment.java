@@ -72,7 +72,7 @@ public class ExpenseDialogFragment extends DialogFragment {
     }
 
     private void setupCategorySpinner() {
-        String[] categories = {"OPERATIONAL", "UTILITIES", "SALARY", "OTHER"};
+        String[] categories = {"OPERATIONAL"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item_black_text, categories);
         adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_black_text);
         spinnerCategory.setAdapter(adapter);

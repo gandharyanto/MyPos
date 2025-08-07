@@ -60,6 +60,10 @@ public interface TransactionItemDao {
     @Query("DELETE FROM transaction_items WHERE transactionId = :transactionId")
     void deleteTransactionItemsByTransactionId(int transactionId);
     
+    // Method to calculate total quantity sold for a specific product
+    @Query("SELECT COALESCE(SUM(quantity), 0) FROM transaction_items WHERE productId = :productId")
+    int getTotalQuantitySoldForProduct(int productId);
+    
     @Query("SELECT productId, SUM(quantity) as totalQuantity FROM transaction_items GROUP BY productId ORDER BY totalQuantity DESC LIMIT :limit")
     LiveData<List<ProductSalesSummary>> getTopSellingProducts(int limit);
     
