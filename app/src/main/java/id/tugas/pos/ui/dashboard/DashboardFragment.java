@@ -111,9 +111,16 @@ public class DashboardFragment extends Fragment {
         new Thread(() -> {
             ModalAwal modalAwal = modalAwalRepository.getModalAwalByTanggal(hariIni, finalStoreId);
             double nominal = modalAwal != null ? modalAwal.nominal : 0.0;
-            requireActivity().runOnUiThread(() -> {
-                tvModalAwal.setText("Modal Awal: " + id.tugas.pos.utils.CurrencyUtils.formatCurrency(nominal));
-            });
+
+            // Check if fragment is still attached to activity before updating UI
+            if (getActivity() != null && isAdded()) {
+                getActivity().runOnUiThread(() -> {
+                    // Double check fragment is still attached when UI thread runs
+                    if (getActivity() != null && isAdded() && tvModalAwal != null) {
+                        tvModalAwal.setText("Modal Awal: " + id.tugas.pos.utils.CurrencyUtils.formatCurrency(nominal));
+                    }
+                });
+            }
         }).start();
     }
     
@@ -322,4 +329,4 @@ public class DashboardFragment extends Fragment {
     }
     
 
-} 
+}

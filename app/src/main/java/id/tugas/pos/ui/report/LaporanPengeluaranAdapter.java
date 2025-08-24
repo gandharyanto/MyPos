@@ -18,6 +18,10 @@ public class LaporanPengeluaranAdapter extends RecyclerView.Adapter<LaporanPenge
         notifyDataSetChanged();
     }
 
+    public List<LaporanPengeluaranItem> getData() {
+        return data;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -49,4 +53,4 @@ public class LaporanPengeluaranAdapter extends RecyclerView.Adapter<LaporanPenge
             tvKeterangan = itemView.findViewById(R.id.tvKeterangan);
         }
     }
-} 
+}

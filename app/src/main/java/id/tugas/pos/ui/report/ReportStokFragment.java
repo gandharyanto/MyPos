@@ -16,9 +16,11 @@ import id.tugas.pos.R;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import android.widget.TextView;
 import id.tugas.pos.ui.stockin.StockInDialogFragment;
+import id.tugas.pos.utils.ExcelExporter;
 
 public class ReportStokFragment extends Fragment {
     private LaporanStokAdapter adapter;
@@ -113,6 +115,12 @@ public class ReportStokFragment extends Fragment {
         Toast.makeText(requireContext(), "Export PDF belum diimplementasikan", Toast.LENGTH_SHORT).show();
     }
     private void exportExcel() {
-        Toast.makeText(requireContext(), "Export Excel belum diimplementasikan", Toast.LENGTH_SHORT).show();
+        List<LaporanStokItem> data = adapter.getData();
+        if (data == null || data.isEmpty()) {
+            Toast.makeText(requireContext(), "Tidak ada data untuk diekspor", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ExcelExporter.exportStockReport(requireContext(), data);
     }
-} 
+}

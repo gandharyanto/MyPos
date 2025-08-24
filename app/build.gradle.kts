@@ -4,6 +4,15 @@ plugins {
 
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.Properties
+import java.io.FileInputStream
+
+// Load keystore properties from local.properties
+val keystorePropertiesFile = rootProject.file("local.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace = "id.tugas.pos"
@@ -11,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "id.tugas.pos"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -19,13 +28,30 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+//            storeFile = file(keystoreProperties["KEYSTORE_FILE"] ?: "")
+//            storePassword = keystoreProperties["KEYSTORE_PASSWORD"] as String? ?: ""
+//            keyAlias = keystoreProperties["KEY_ALIAS"] as String? ?: ""
+//            keyPassword = keystoreProperties["KEY_PASSWORD"] as String? ?: ""
+        }
+        getByName("debug") {
+//            storeFile = file(keystoreProperties["KEYSTORE_FILE"] ?: "")
+//            storePassword = keystoreProperties["KEYSTORE_PASSWORD"] as String? ?: ""
+//            keyAlias = keystoreProperties["KEY_ALIAS"] as String? ?: ""
+//            keyPassword = keystoreProperties["KEY_PASSWORD"] as String? ?: ""
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isDebuggable = true
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     
@@ -100,6 +126,10 @@ dependencies {
     // PDF Generation
     implementation(libs.itext7.core)
     
+    // Excel Export
+    implementation(libs.poi)
+    implementation(libs.poi.ooxml)
+
     // Image Loading
     implementation(libs.glide)
     annotationProcessor(libs.compiler)

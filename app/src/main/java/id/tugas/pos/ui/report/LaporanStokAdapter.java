@@ -18,6 +18,10 @@ public class LaporanStokAdapter extends RecyclerView.Adapter<LaporanStokAdapter.
         notifyDataSetChanged();
     }
 
+    public List<LaporanStokItem> getData() {
+        return data;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -49,4 +53,4 @@ public class LaporanStokAdapter extends RecyclerView.Adapter<LaporanStokAdapter.
             tvStokTersisa = itemView.findViewById(R.id.tvStokTersisa);
         }
     }
-} 
+}
