@@ -316,4 +316,12 @@ public class TransactionRepository {
             e.printStackTrace();
         }
     }
-} 
+
+    public LiveData<Double> getTodaySalesByStore(Integer storeId) {
+        if (storeId == null || storeId == -1) {
+            return transactionDao.getTodaySalesAllStores();
+        } else {
+            return transactionDao.getTodaySalesByStore(storeId);
+        }
+    }
+}

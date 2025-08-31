@@ -96,4 +96,10 @@ public interface TransactionDao {
     
     @Query("SELECT * FROM transactions ORDER BY createdAt DESC")
     List<Transaction> getAllTransactionsSync();
-} 
+
+    @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND storeId = :storeId AND strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch')) = strftime('%Y-%m-%d', 'now')")
+    LiveData<Double> getTodaySalesByStore(int storeId);
+
+    @Query("SELECT SUM(total) FROM transactions WHERE status = 'COMPLETED' AND strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch')) = strftime('%Y-%m-%d', 'now')")
+    LiveData<Double> getTodaySalesAllStores();
+}
