@@ -115,13 +115,13 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                filterProducts(query);
+                filterProducts(query != null ? query.trim() : "");
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                filterProducts(newText);
+                filterProducts(newText != null ? newText.trim() : "");
                 return true;
             }
         });
@@ -451,4 +451,4 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
                 .setNegativeButton("Batal", null)
                 .show();
     }
-} 
+}

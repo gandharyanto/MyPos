@@ -134,13 +134,13 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                filterProducts(query);
+                filterProducts(query != null ? query.trim() : "");
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                filterProducts(newText);
+                filterProducts(newText != null ? newText.trim() : "");
                 return true;
             }
         });
@@ -497,4 +497,4 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
             });
         }
     }
-} 
+}
