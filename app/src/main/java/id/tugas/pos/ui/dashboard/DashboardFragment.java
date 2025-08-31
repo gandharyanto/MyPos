@@ -40,6 +40,8 @@ public class DashboardFragment extends Fragment {
     
     // Track last storeId to prevent unnecessary reloads
     private Integer lastStoreId = null;
+    // Track last user role to prevent looping refresh
+    private String lastUserRole = null;
 
     @Nullable
     @Override
@@ -50,24 +52,21 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
         // Initialize ViewModel
         dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
         loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
-        
         // Get MainActivity reference
         mainActivity = (MainActivity) requireActivity();
-        
         // Initialize views
         initViews(view);
-        
-        // Observe data
-        observeViewModel();
-        
-        // Setup store selection for admin and load dashboard data
-        setupStoreSelection();
-        
-        // Note: loadDashboardData() is now called in setupStoreSelection()
+        // Only setup if user role changed
+        String currentRole = loginViewModel.isAdmin() ? "ADMIN" : "USER";
+        if (lastUserRole == null || !lastUserRole.equals(currentRole)) {
+            observeViewModel();
+            setupStoreSelection();
+            lastUserRole = currentRole;
+        }
+        // Show/hide spinner for admin
         if (loginViewModel.isAdmin()) {
             mainActivity.spinnerStore.setVisibility(View.VISIBLE);
             mainActivity.labelStore.setVisibility(View.VISIBLE);
@@ -81,6 +80,7 @@ public class DashboardFragment extends Fragment {
             mainActivity.spinnerStore.setVisibility(View.GONE);
             mainActivity.labelStore.setVisibility(View.GONE);
         }
+        lastUserRole = null; // Reset on destroy
     }
     
     private void initViews(View view) {
