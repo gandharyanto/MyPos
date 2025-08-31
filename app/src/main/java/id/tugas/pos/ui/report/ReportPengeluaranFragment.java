@@ -63,33 +63,30 @@ public class ReportPengeluaranFragment extends Fragment {
             
             // Observe store selection for admin
             storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
-                if (storeId != null && storeId > 0) {
-                    // Load data for selected store
-                    viewModel.loadLaporanPengeluaranByStore(startDate, endDate, storeId);
-                } else {
-                    // Load all data
-                    viewModel.loadLaporanPengeluaran(startDate, endDate);
-                }
+                viewModel.setStoreId(storeId);
+                viewModel.setDateRange(startDate, endDate);
             });
         } else {
             // For user, use their store ID
             loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
                 if (user != null && user.getStoreId() != null) {
-                    viewModel.loadLaporanPengeluaranByStore(startDate, endDate, user.getStoreId());
+                    viewModel.setStoreId(user.getStoreId());
                 } else {
-                    viewModel.loadLaporanPengeluaran(startDate, endDate);
+                    viewModel.setStoreId(null);
                 }
+                viewModel.setDateRange(startDate, endDate);
             });
         }
 
         // Load data awal (semua tanggal)
         startDate = 0;
         endDate = System.currentTimeMillis();
-        loadLaporan();
+        viewModel.setDateRange(startDate, endDate);
+        viewModel.setStoreId(null);
         return view;
     }
     private void loadLaporan() {
-        viewModel.loadLaporanPengeluaran(startDate, endDate);
+        viewModel.setDateRange(startDate, endDate);
     }
     private void showDateRangePicker() {
         MaterialDatePicker.Builder<androidx.core.util.Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
@@ -98,6 +95,7 @@ public class ReportPengeluaranFragment extends Fragment {
         picker.addOnPositiveButtonClickListener(selection -> {
             startDate = selection.first;
             endDate = selection.second;
+            viewModel.setDateRange(startDate, endDate);
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             String tgl = sdf.format(new Date(startDate)) + " - " + sdf.format(new Date(endDate));
             tvTanggalDipilih.setText(tgl);
