@@ -446,13 +446,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         loginViewModel.logout();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        // Schedule app restart using AlarmManager
-        android.app.AlarmManager alarmManager = (android.app.AlarmManager) getSystemService(android.content.Context.ALARM_SERVICE);
-        android.app.PendingIntent restartIntent = android.app.PendingIntent.getActivity(
-            this, 0, intent, android.app.PendingIntent.FLAG_ONE_SHOT | android.app.PendingIntent.FLAG_IMMUTABLE
-        );
-        long restartTime = System.currentTimeMillis() + 200; // 200ms delay
-        alarmManager.set(android.app.AlarmManager.RTC, restartTime, restartIntent);
+        startActivity(intent);
         finish();
         // Force kill the process to clear all session and memory
         android.os.Process.killProcess(android.os.Process.myPid());
