@@ -34,10 +34,12 @@ import id.tugas.pos.ui.report.ReportFragment;
 import id.tugas.pos.ui.settings.SettingsFragment;
 import id.tugas.pos.ui.transaksi.TransaksiFragment;
 import id.tugas.pos.ui.user.UserManagementFragment;
+import id.tugas.pos.viewmodel.DashboardViewModel;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import android.util.Log;
 import android.widget.Spinner; // Tambahkan import untuk Spinner
 import id.tugas.pos.data.model.Store;
+import id.tugas.pos.viewmodel.ProductViewModel;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = "MainActivity";
@@ -107,7 +109,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.d(TAG, "MainActivity: currentUser is not null, setting up user info");
                 currentUser = user;
                 setupUserInfo();
-                
+                // Force reload dashboard and product data for new user
+                DashboardViewModel dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
+                dashboardViewModel.loadDashboardData();
+                ProductViewModel productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
+                // If you have a reload method, call it here (e.g., productViewModel.reloadProductsForUser(currentUser.getStoreId());)
                 // Load default fragment setelah currentUser tersedia
                 if (savedInstanceState == null) {
                     // Load default fragment based on user role
@@ -444,11 +450,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     
     private void logout() {
         loginViewModel.logout();
+        // Clear ViewModel data to prevent stale data after logout
+        DashboardViewModel dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
+        dashboardViewModel.clearData();
+        ProductViewModel productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
+        productViewModel.clearData();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-        // Removed process kill to ensure reliable navigation to LoginActivity
     }
     
     @Override

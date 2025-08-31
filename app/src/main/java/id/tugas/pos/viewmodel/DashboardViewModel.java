@@ -227,4 +227,15 @@ public class DashboardViewModel extends AndroidViewModel {
     public LiveData<Integer> getPendingTransactions() { return pendingTransactionsLiveData; }
     public LiveData<Double> getTotalExpenses() { return totalExpensesLiveData; }
     public LiveData<Double> getProfitMargin() { return profitMarginLiveData; }
+
+    public void clearData() {
+        totalRevenue.setValue(null);
+        todaySales.setValue(null);
+        totalProducts.setValue(null);
+        lowStockCount.setValue(null);
+        pendingTransactions.setValue(null);
+        totalExpenses.setValue(null);
+        profitMargin.setValue(null);
+        // Optionally, clear repository cache if any
+    }
 }

@@ -23,4 +23,10 @@ public class ProductViewModel extends AndroidViewModel {
     public LiveData<List<String>> getAllCategoriesByStore(int storeId) {
         return repository.getAllCategoriesByStore(storeId);
     }
-} 
+
+    public void clearData() {
+        // No LiveData fields to reset in this ViewModel currently.
+        // If you add LiveData fields (e.g., for filtered products), reset them here.
+        // No repository cache to clear.
+    }
+}
