@@ -36,7 +36,6 @@ public class ProductViewModel extends AndroidViewModel {
         productsByStore = repository.getAllProductsByStore(storeId);
     }
 
-    @Override
     public void clearData() {
         currentStoreId.setValue(null);
         productsByStore = null;

@@ -43,6 +43,13 @@ public class DashboardViewModel extends AndroidViewModel {
     private LiveData<Double> totalExpensesLiveData;
     private LiveData<Double> profitMarginLiveData = new MutableLiveData<>();
 
+    // Observer references for cleanup
+    private androidx.lifecycle.Observer<Double> revenueObserver;
+    private androidx.lifecycle.Observer<Integer> totalProductsObserver;
+    private androidx.lifecycle.Observer<Integer> lowStockObserver;
+    private androidx.lifecycle.Observer<Integer> pendingTransactionsObserver;
+    private androidx.lifecycle.Observer<Double> expensesObserver;
+
     public DashboardViewModel(Application application) {
         super(application);
         transactionRepository = new TransactionRepository(application);
@@ -93,42 +100,51 @@ public class DashboardViewModel extends AndroidViewModel {
     public void loadDashboardDataByStore(Integer storeId) {
         Log.d(TAG, "loadDashboardDataByStore: Loading data for storeId: " + storeId);
         currentStoreId = storeId;
-        
-        // Load total revenue - use observe instead of observeForever
-        transactionRepository.getTotalRevenueByStore(storeId).observeForever(revenue -> {
+        // Remove previous observers if any
+        if (revenueObserver != null) {
+            transactionRepository.getTotalRevenueByStore(storeId).removeObserver(revenueObserver);
+        }
+        if (totalProductsObserver != null) {
+            productRepository.getActiveProductCountByStore(storeId).removeObserver(totalProductsObserver);
+        }
+        if (lowStockObserver != null) {
+            productRepository.getLowStockCountByStore(storeId).removeObserver(lowStockObserver);
+        }
+        if (pendingTransactionsObserver != null) {
+            transactionRepository.getPendingTransactionCountByStore(storeId).removeObserver(pendingTransactionsObserver);
+        }
+        if (expensesObserver != null) {
+            expenseRepository.getTotalExpensesByStore(storeId).removeObserver(expensesObserver);
+        }
+        // Add new observers
+        revenueObserver = revenue -> {
             Log.d(TAG, "loadDashboardDataByStore: Total revenue: " + revenue);
             totalRevenue.setValue(revenue != null ? revenue : 0.0);
-            // Recalculate profit margin when revenue changes
             calculateProfitMargin();
-        });
-        
-        // Load today's sales
+        };
+        transactionRepository.getTotalRevenueByStore(storeId).observeForever(revenueObserver);
         loadTodaySales(storeId);
-        
-        // Load product counts
-        productRepository.getActiveProductCountByStore(storeId).observeForever(count -> {
+        totalProductsObserver = count -> {
             Log.d(TAG, "loadDashboardDataByStore: Total products: " + count);
             totalProducts.setValue(count != null ? count : 0);
-        });
-        
-        productRepository.getLowStockCountByStore(storeId).observeForever(count -> {
+        };
+        productRepository.getActiveProductCountByStore(storeId).observeForever(totalProductsObserver);
+        lowStockObserver = count -> {
             Log.d(TAG, "loadDashboardDataByStore: Low stock count: " + count);
             lowStockCount.setValue(count != null ? count : 0);
-        });
-        
-        // Load pending transactions
-        transactionRepository.getPendingTransactionCountByStore(storeId).observeForever(count -> {
+        };
+        productRepository.getLowStockCountByStore(storeId).observeForever(lowStockObserver);
+        pendingTransactionsObserver = count -> {
             Log.d(TAG, "loadDashboardDataByStore: Pending transactions: " + count);
             pendingTransactions.setValue(count != null ? count : 0);
-        });
-        
-        // Load total expenses
-        expenseRepository.getTotalExpensesByStore(storeId).observeForever(expenses -> {
+        };
+        transactionRepository.getPendingTransactionCountByStore(storeId).observeForever(pendingTransactionsObserver);
+        expensesObserver = expenses -> {
             Log.d(TAG, "loadDashboardDataByStore: Total expenses: " + expenses);
             totalExpenses.setValue(expenses != null ? expenses : 0.0);
-            // Recalculate profit margin when expenses change
             calculateProfitMargin();
-        });
+        };
+        expenseRepository.getTotalExpensesByStore(storeId).observeForever(expensesObserver);
     }
     
     // Method untuk refresh data setelah transaksi baru

@@ -37,6 +37,9 @@ public class LoginViewModel extends AndroidViewModel {
     private Context context;
     private static final String TAG = "LoginViewModel";
     
+    // Keep reference to session observer
+    private androidx.lifecycle.Observer<User> sessionObserver;
+
     public LoginViewModel(Application application) {
         super(application);
         userRepository = new UserRepository(application);
@@ -44,13 +47,12 @@ public class LoginViewModel extends AndroidViewModel {
         productRepository = new ProductRepository(application);
         this.context = application.getApplicationContext();
         this.executorService = Executors.newSingleThreadExecutor();
-        // Load session if exists
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         int userId = prefs.getInt(KEY_USER_ID, -1);
         Log.d(TAG, "Constructor: Loaded userId from prefs: " + userId);
         if (userId != -1) {
             Log.d(TAG, "Constructor: Attempting to restore session for userId: " + userId);
-            userRepository.getUserById(userId).observeForever(user -> {
+            sessionObserver = user -> {
                 Log.d(TAG, "Session restore: user loaded from DB: " + new Gson().toJson(user));
                 if (user != null) {
                     currentUser.setValue(user);
@@ -64,12 +66,22 @@ public class LoginViewModel extends AndroidViewModel {
                     editor.apply();
                     Log.d(TAG, "Session restore: Invalid session cleared");
                 }
-            });
+            };
+            userRepository.getUserById(userId).observeForever(sessionObserver);
         } else {
             Log.d(TAG, "Constructor: No session found in prefs");
         }
     }
     
+    public void clearSessionObserver() {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        int userId = prefs.getInt(KEY_USER_ID, -1);
+        if (userId != -1 && sessionObserver != null) {
+            userRepository.getUserById(userId).removeObserver(sessionObserver);
+            sessionObserver = null;
+        }
+    }
+
     public void login(String identifier, String password) {
         Log.d(TAG, "login called with identifier: " + identifier);
         if (identifier == null || identifier.trim().isEmpty()) {
@@ -87,30 +99,34 @@ public class LoginViewModel extends AndroidViewModel {
         
         // Login dengan email atau username
         LiveData<User> userLiveData = userRepository.loginWithEmailOrUsername(identifier.trim(), password);
-        userLiveData.observeForever(user -> {
-            Log.d(TAG, "login: user loaded: " + user);
-            if (user != null) {
-                currentUser.setValue(user);
-                Log.d(TAG, "login: currentUser set to: " + user);
-                // Refresh produk setelah login sukses
-                if (productRepository != null) {
-                    productRepository.refreshAllProducts();
+        androidx.lifecycle.Observer<User> loginObserver = new androidx.lifecycle.Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                Log.d(TAG, "login: user loaded: " + user);
+                if (user != null) {
+                    currentUser.setValue(user);
+                    Log.d(TAG, "login: currentUser set to: " + user);
+                    // Refresh produk setelah login sukses
+                    if (productRepository != null) {
+                        productRepository.refreshAllProducts();
+                    }
+                    // Simpan session ke SharedPreferences
+                    SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                    prefs.edit().putInt(KEY_USER_ID, user.getId()).apply();
+                    // Update last login time
+                    userRepository.updateLastLogin(user.getId(), System.currentTimeMillis());
+                    loginResult.setValue(new LoginResult(true));
+                    isLoading.setValue(false);
+                } else {
+                    Log.d(TAG, "login: user is null");
+                    errorMessage.setValue("Username/Email atau password salah");
+                    loginResult.setValue(new LoginResult(false));
+                    isLoading.setValue(false);
                 }
-                // Simpan session ke SharedPreferences
-                SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                prefs.edit().putInt(KEY_USER_ID, user.getId()).apply();
-                // Update last login time
-                userRepository.updateLastLogin(user.getId(), System.currentTimeMillis());
-                loginResult.setValue(new LoginResult(true));
-                isLoading.setValue(false);
-            } else {
-                Log.d(TAG, "login: user is null");
-                errorMessage.setValue("Username/Email atau password salah");
-                loginResult.setValue(new LoginResult(false));
-                isLoading.setValue(false);
+                userLiveData.removeObserver(this);
             }
-            userLiveData.removeObserver(user1 -> {});
-        });
+        };
+        userLiveData.observeForever(loginObserver);
     }
     
     public void logout() {
@@ -119,6 +135,7 @@ public class LoginViewModel extends AndroidViewModel {
         // Hapus session dari SharedPreferences
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().remove(KEY_USER_ID).apply();
+        clearSessionObserver();
     }
     
     public void createDefaultAdmin() {
