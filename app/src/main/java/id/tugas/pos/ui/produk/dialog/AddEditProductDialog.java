@@ -296,7 +296,13 @@ public class AddEditProductDialog extends DialogFragment {
         String costStr = etProductCost.getText().toString().trim();
         String priceStr = etProductPrice.getText().toString().trim();
         String stockStr = etProductStock.getText().toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
+        Object selectedCategoryObj = spinnerCategory.getSelectedItem();
+        String category = selectedCategoryObj != null ? selectedCategoryObj.toString() : "";
+        if (TextUtils.isEmpty(category)) {
+            android.util.Log.e("AddEditProductDialog", "Category is null or empty");
+            Toast.makeText(getContext(), "Kategori produk harus dipilih", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String unit = etProductUnit.getText().toString().trim();
 
         android.util.Log.d("AddEditProductDialog", "Product data - Name: " + name + ", Code: " + code + ", Category: " + category);
@@ -555,4 +561,4 @@ public class AddEditProductDialog extends DialogFragment {
             }
         }
     }
-} 
+}
