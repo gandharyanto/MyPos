@@ -297,8 +297,8 @@ public class TransaksiFragment extends Fragment implements ProductGridAdapter.On
             Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             positiveButton.setOnClickListener(v -> {
                 try {
-                    double amountPaid = Double.parseDouble(etAmountPaid.getText().toString());
-                    
+                    double amountPaid = Double.parseDouble(etAmountPaid.getText().toString().trim());
+
                     if (amountPaid < totalAmount) {
                         Toast.makeText(requireContext(), "Jumlah pembayaran kurang dari total", Toast.LENGTH_SHORT).show();
                         return;
