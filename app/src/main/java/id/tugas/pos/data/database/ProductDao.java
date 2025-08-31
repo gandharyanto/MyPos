@@ -116,4 +116,7 @@ public interface ProductDao {
     default void refreshProductData() {
         refreshProductData(System.currentTimeMillis());
     }
-} 
+
+    @Query("SELECT * FROM products WHERE storeId = :storeId AND isActive = 1 ORDER BY name ASC")
+    LiveData<List<Product>> getAllProductsByStore(int storeId);
+}

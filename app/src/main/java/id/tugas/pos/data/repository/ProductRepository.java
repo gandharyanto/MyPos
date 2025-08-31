@@ -169,7 +169,7 @@ public class ProductRepository {
     }
     
     public LiveData<List<Product>> getAllProductsByStore(int storeId) {
-        return productDao.getAllActiveProductsByStore(storeId);
+        return productDao.getAllProductsByStore(storeId);
     }
     
     public LiveData<List<String>> getAllCategoriesByStore(int storeId) {
@@ -378,4 +378,4 @@ public class ProductRepository {
             }
         });
     }
-} 
+}

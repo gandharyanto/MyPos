@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import id.tugas.pos.data.model.User;
 import id.tugas.pos.data.repository.UserRepository;
 import id.tugas.pos.data.repository.StoreRepository;
+import id.tugas.pos.data.repository.ProductRepository;
 import id.tugas.pos.data.model.Store;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class LoginViewModel extends AndroidViewModel {
     
     private UserRepository userRepository;
     private StoreRepository storeRepository;
+    private ProductRepository productRepository;
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private MutableLiveData<User> currentUser = new MutableLiveData<>();
@@ -39,6 +41,7 @@ public class LoginViewModel extends AndroidViewModel {
         super(application);
         userRepository = new UserRepository(application);
         storeRepository = new StoreRepository(application);
+        productRepository = new ProductRepository(application);
         this.context = application.getApplicationContext();
         this.executorService = Executors.newSingleThreadExecutor();
         // Load session if exists
@@ -89,6 +92,10 @@ public class LoginViewModel extends AndroidViewModel {
             if (user != null) {
                 currentUser.setValue(user);
                 Log.d(TAG, "login: currentUser set to: " + user);
+                // Refresh produk setelah login sukses
+                if (productRepository != null) {
+                    productRepository.refreshAllProducts();
+                }
                 // Simpan session ke SharedPreferences
                 SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
                 prefs.edit().putInt(KEY_USER_ID, user.getId()).apply();
@@ -300,4 +307,4 @@ public class LoginViewModel extends AndroidViewModel {
             executorService.shutdown();
         }
     }
-} 
+}

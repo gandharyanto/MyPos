@@ -113,7 +113,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 DashboardViewModel dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
                 dashboardViewModel.loadDashboardData();
                 ProductViewModel productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
-                // If you have a reload method, call it here (e.g., productViewModel.reloadProductsForUser(currentUser.getStoreId());)
+                if (currentUser != null && currentUser.getStoreId() != null) {
+                    productViewModel.setStoreId(currentUser.getStoreId());
+                }
                 // Load default fragment setelah currentUser tersedia
                 if (savedInstanceState == null) {
                     // Load default fragment based on user role
