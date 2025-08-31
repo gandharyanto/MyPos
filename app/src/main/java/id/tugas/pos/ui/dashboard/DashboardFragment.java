@@ -125,14 +125,9 @@ public class DashboardFragment extends Fragment {
     }
     
     private void setupStoreSelection() {
-        // Check if user is admin
         if (loginViewModel.isAdmin()) {
             Log.d(TAG, "User is admin, setting up store selection");
-            
-            // Setup toolbar title and subtitle
             mainActivity.setToolbarTitle("Dashboard", "Semua Toko");
-            
-            // Setup store spinner in toolbar
             loginViewModel.getStores().observe(getViewLifecycleOwner(), stores -> {
                 if (stores != null && !stores.isEmpty()) {
                     mainActivity.setupToolbarStoreSpinner(stores, new AdapterView.OnItemSelectedListener() {
@@ -140,52 +135,35 @@ public class DashboardFragment extends Fragment {
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                             Store selectedStore = (Store) parent.getItemAtPosition(position);
                             Log.d(TAG, "Store selected: " + selectedStore.getName() + " (ID: " + selectedStore.getId() + ")");
-                            
-                            // Update toolbar subtitle
                             mainActivity.setToolbarTitle("Dashboard", selectedStore.getName());
-                            
-                            // Jika pilih 'Semua Toko', load semua data
                             tampilkanModalAwal(selectedStore.getId());
-                            if (selectedStore.getId() == -1) {
-                                dashboardViewModel.loadDashboardData();
-                            } else {
-                                dashboardViewModel.loadDashboardDataByStore(selectedStore.getId());
-                            }
+                            dashboardViewModel.setStoreId(selectedStore.getId() == -1 ? null : selectedStore.getId());
                         }
-                        
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {
                             mainActivity.setToolbarTitle("Dashboard", "Semua Toko");
                             tampilkanModalAwal(-1);
-                            dashboardViewModel.loadDashboardData();
+                            dashboardViewModel.setStoreId(null);
                         }
                     });
                 }
             });
         } else {
             Log.d(TAG, "User is not admin, using default store");
-            
-            // Get current user's store
             loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
                 if (user != null && user.getStoreId() != null) {
-                    Log.d(TAG, "setupStoreSelection: User storeId: " + user.getStoreId());
-                    
-                    // Get store name
                     loginViewModel.getStoreById(user.getStoreId()).observe(getViewLifecycleOwner(), store -> {
                         if (store != null) {
                             mainActivity.setToolbarTitle("Dashboard", store.getName());
                             Log.d(TAG, "setupStoreSelection: Store name: " + store.getName());
-                            
-                            // Load dashboard data for user's store
                             tampilkanModalAwal(user.getStoreId());
-                            dashboardViewModel.loadDashboardDataByStore(user.getStoreId());
+                            dashboardViewModel.setStoreId(user.getStoreId());
                         }
                     });
                 } else {
                     Log.d(TAG, "setupStoreSelection: User has no storeId, loading all data");
-                    // Fallback: load all data
                     tampilkanModalAwal(-1);
-                    dashboardViewModel.loadDashboardData();
+                    dashboardViewModel.setStoreId(null);
                 }
             });
         }

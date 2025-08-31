@@ -33,13 +33,24 @@ public class DashboardViewModel extends AndroidViewModel {
     private MutableLiveData<Double> profitMargin = new MutableLiveData<>();
     
     private Integer currentStoreId = null;
-    
+
+    // Expose LiveData directly from repositories
+    private LiveData<Double> totalRevenueLiveData;
+    private LiveData<Double> todaySalesLiveData;
+    private LiveData<Integer> totalProductsLiveData;
+    private LiveData<Integer> lowStockCountLiveData;
+    private LiveData<Integer> pendingTransactionsLiveData;
+    private LiveData<Double> totalExpensesLiveData;
+    private LiveData<Double> profitMarginLiveData = new MutableLiveData<>();
+
     public DashboardViewModel(Application application) {
         super(application);
         transactionRepository = new TransactionRepository(application);
         productRepository = new ProductRepository(application);
         expenseRepository = new ExpenseRepository(application);
         userRepository = new UserRepository(application);
+
+        updateLiveDataSources();
     }
     
     public void loadDashboardData() {
@@ -193,32 +204,27 @@ public class DashboardViewModel extends AndroidViewModel {
         }
     }
     
+    public void setStoreId(Integer storeId) {
+        currentStoreId = storeId;
+        updateLiveDataSources();
+    }
+
+    private void updateLiveDataSources() {
+        totalRevenueLiveData = transactionRepository.getTotalRevenueByStore(currentStoreId);
+        todaySalesLiveData = transactionRepository.getTodaySalesByStore(currentStoreId);
+        totalProductsLiveData = productRepository.getActiveProductCountByStore(currentStoreId);
+        lowStockCountLiveData = productRepository.getLowStockCountByStore(currentStoreId);
+        pendingTransactionsLiveData = transactionRepository.getPendingTransactionCountByStore(currentStoreId);
+        totalExpensesLiveData = expenseRepository.getTotalExpensesByStore(currentStoreId);
+        // Profit margin can be calculated in the fragment when revenue/expenses change
+    }
+
     // Getters for LiveData
-    public LiveData<Double> getTotalRevenue() {
-        return totalRevenue;
-    }
-    
-    public LiveData<Double> getTodaySales() {
-        return todaySales;
-    }
-    
-    public LiveData<Integer> getTotalProducts() {
-        return totalProducts;
-    }
-    
-    public LiveData<Integer> getLowStockCount() {
-        return lowStockCount;
-    }
-    
-    public LiveData<Integer> getPendingTransactions() {
-        return pendingTransactions;
-    }
-    
-    public LiveData<Double> getTotalExpenses() {
-        return totalExpenses;
-    }
-    
-    public LiveData<Double> getProfitMargin() {
-        return profitMargin;
-    }
-} 
+    public LiveData<Double> getTotalRevenue() { return totalRevenueLiveData; }
+    public LiveData<Double> getTodaySales() { return todaySalesLiveData; }
+    public LiveData<Integer> getTotalProducts() { return totalProductsLiveData; }
+    public LiveData<Integer> getLowStockCount() { return lowStockCountLiveData; }
+    public LiveData<Integer> getPendingTransactions() { return pendingTransactionsLiveData; }
+    public LiveData<Double> getTotalExpenses() { return totalExpensesLiveData; }
+    public LiveData<Double> getProfitMargin() { return profitMarginLiveData; }
+}
