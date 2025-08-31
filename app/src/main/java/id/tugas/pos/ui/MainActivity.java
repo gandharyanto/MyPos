@@ -448,8 +448,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-        // Force kill the process to clear all session and memory
-        android.os.Process.killProcess(android.os.Process.myPid());
+        // Removed process kill to ensure reliable navigation to LoginActivity
     }
     
     @Override
