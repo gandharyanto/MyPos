@@ -38,6 +38,9 @@ public class DashboardFragment extends Fragment {
     private com.google.android.material.button.MaterialButton btnQuickTransaction, btnQuickProduct, btnQuickExpense;
     private com.google.android.material.button.MaterialButton btnQuickStock, btnQuickCategory;
     
+    // Track last storeId to prevent unnecessary reloads
+    private Integer lastStoreId = null;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -137,13 +140,20 @@ public class DashboardFragment extends Fragment {
                             Log.d(TAG, "Store selected: " + selectedStore.getName() + " (ID: " + selectedStore.getId() + ")");
                             mainActivity.setToolbarTitle("Dashboard", selectedStore.getName());
                             tampilkanModalAwal(selectedStore.getId());
-                            dashboardViewModel.setStoreId(selectedStore.getId() == -1 ? null : selectedStore.getId());
+                            Integer newStoreId = selectedStore.getId() == -1 ? null : selectedStore.getId();
+                            if ((lastStoreId == null && newStoreId != null) || (lastStoreId != null && !lastStoreId.equals(newStoreId))) {
+                                dashboardViewModel.setStoreId(newStoreId);
+                                lastStoreId = newStoreId;
+                            }
                         }
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {
                             mainActivity.setToolbarTitle("Dashboard", "Semua Toko");
                             tampilkanModalAwal(-1);
-                            dashboardViewModel.setStoreId(null);
+                            if (lastStoreId != null) {
+                                dashboardViewModel.setStoreId(null);
+                                lastStoreId = null;
+                            }
                         }
                     });
                 }
@@ -151,19 +161,24 @@ public class DashboardFragment extends Fragment {
         } else {
             Log.d(TAG, "User is not admin, using default store");
             loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
-                if (user != null && user.getStoreId() != null) {
-                    loginViewModel.getStoreById(user.getStoreId()).observe(getViewLifecycleOwner(), store -> {
-                        if (store != null) {
-                            mainActivity.setToolbarTitle("Dashboard", store.getName());
-                            Log.d(TAG, "setupStoreSelection: Store name: " + store.getName());
-                            tampilkanModalAwal(user.getStoreId());
-                            dashboardViewModel.setStoreId(user.getStoreId());
-                        }
-                    });
-                } else {
-                    Log.d(TAG, "setupStoreSelection: User has no storeId, loading all data");
-                    tampilkanModalAwal(-1);
-                    dashboardViewModel.setStoreId(null);
+                Integer newStoreId = (user != null && user.getStoreId() != null) ? user.getStoreId() : null;
+                if ((lastStoreId == null && newStoreId != null) || (lastStoreId != null && !lastStoreId.equals(newStoreId))) {
+                    if (user != null && user.getStoreId() != null) {
+                        loginViewModel.getStoreById(user.getStoreId()).observe(getViewLifecycleOwner(), store -> {
+                            if (store != null) {
+                                mainActivity.setToolbarTitle("Dashboard", store.getName());
+                                Log.d(TAG, "setupStoreSelection: Store name: " + store.getName());
+                                tampilkanModalAwal(user.getStoreId());
+                                dashboardViewModel.setStoreId(user.getStoreId());
+                                lastStoreId = user.getStoreId();
+                            }
+                        });
+                    } else {
+                        Log.d(TAG, "setupStoreSelection: User has no storeId, loading all data");
+                        tampilkanModalAwal(-1);
+                        dashboardViewModel.setStoreId(null);
+                        lastStoreId = null;
+                    }
                 }
             });
         }
