@@ -63,9 +63,10 @@ public class ExcelExporter {
                 row.createCell(4).setCellValue(transaction.getPaymentMethod());
             }
 
-            // Auto-size columns
+            // Instead of autoSizeColumn (not supported on Android), set a default column width
             for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+                // sheet.autoSizeColumn(i); // Disabled: not supported on Android
+                sheet.setColumnWidth(i, 20 * 256); // 20 characters wide
             }
 
             saveWorkbook(context, workbook, "Laporan_Transaksi");
@@ -112,9 +113,10 @@ public class ExcelExporter {
                 row.createCell(4).setCellValue(expense.getCategory());
             }
 
-            // Auto-size columns
+            // Instead of autoSizeColumn (not supported on Android), set a default column width
             for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+                // sheet.autoSizeColumn(i); // Disabled: not supported on Android
+                sheet.setColumnWidth(i, 20 * 256); // 20 characters wide
             }
 
             saveWorkbook(context, workbook, "Laporan_Pengeluaran");
@@ -166,9 +168,10 @@ public class ExcelExporter {
                 row.createCell(5).setCellValue(status);
             }
 
-            // Auto-size columns
+            // Instead of autoSizeColumn (not supported on Android), set a default column width
             for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+                // sheet.autoSizeColumn(i); // Disabled: not supported on Android
+                sheet.setColumnWidth(i, 20 * 256); // 20 characters wide
             }
 
             saveWorkbook(context, workbook, "Laporan_Stok");
@@ -216,9 +219,10 @@ public class ExcelExporter {
                 totalCell.setCellStyle(currencyStyle);
             }
 
-            // Auto-size columns
+            // Instead of autoSizeColumn (not supported on Android), set a default column width
             for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+                // sheet.autoSizeColumn(i); // Disabled: not supported on Android
+                sheet.setColumnWidth(i, 20 * 256); // 20 characters wide
             }
 
             saveWorkbook(context, workbook, "Laporan_Transaksi_Produk");
@@ -264,9 +268,10 @@ public class ExcelExporter {
                 row.createCell(4).setCellValue(item.getKeterangan());
             }
 
-            // Auto-size columns
+            // Instead of autoSizeColumn (not supported on Android), set a default column width
             for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+                // sheet.autoSizeColumn(i); // Disabled: not supported on Android
+                sheet.setColumnWidth(i, 20 * 256); // 20 characters wide
             }
 
             saveWorkbook(context, workbook, "Laporan_Pengeluaran");
@@ -317,9 +322,10 @@ public class ExcelExporter {
                 stokTersisaCell.setCellStyle(numberStyle);
             }
 
-            // Auto-size columns
+            // Instead of autoSizeColumn (not supported on Android), set a default column width
             for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+                // sheet.autoSizeColumn(i); // Disabled: not supported on Android
+                sheet.setColumnWidth(i, 20 * 256); // 20 characters wide
             }
 
             saveWorkbook(context, workbook, "Laporan_Stok");

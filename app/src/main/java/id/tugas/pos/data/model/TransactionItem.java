@@ -24,6 +24,7 @@ public class TransactionItem {
     private long createdAt;
 
     public TransactionItem() {
+        this.createdAt = System.currentTimeMillis();
     }
 
     public TransactionItem(int transactionId, int productId, String productName, double price, int quantity) {
@@ -33,6 +34,7 @@ public class TransactionItem {
         this.price = price;
         this.quantity = quantity;
         this.discount = 0;
+        this.createdAt = System.currentTimeMillis();
         calculateTotals();
     }
 
@@ -44,6 +46,7 @@ public class TransactionItem {
         this.price = price;
         this.quantity = quantity;
         this.discount = discount;
+        this.createdAt = System.currentTimeMillis();
         calculateTotals();
     }
 
@@ -147,4 +150,4 @@ public class TransactionItem {
     public String getName() {
         return productName;
     }
-} 
+}

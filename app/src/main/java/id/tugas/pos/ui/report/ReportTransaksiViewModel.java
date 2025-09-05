@@ -10,7 +10,7 @@ import java.util.List;
 
 public class ReportTransaksiViewModel extends AndroidViewModel {
     private final TransactionRepository repository;
-    private LiveData<List<LaporanTransaksiItem>> laporanTransaksi;
+    private final MutableLiveData<List<LaporanTransaksiItem>> laporanTransaksi = new MutableLiveData<>();
 
     public ReportTransaksiViewModel(@NonNull Application application) {
         super(application);
@@ -22,10 +22,14 @@ public class ReportTransaksiViewModel extends AndroidViewModel {
     }
 
     public void loadLaporanTransaksi(long startDate, long endDate) {
-        laporanTransaksi = repository.getLaporanTransaksi(startDate, endDate);
+        repository.getLaporanTransaksi(startDate, endDate).observeForever(data -> {
+            laporanTransaksi.postValue(data);
+        });
     }
     
     public void loadLaporanTransaksiByStore(long startDate, long endDate, int storeId) {
-        laporanTransaksi = repository.getLaporanTransaksiByStore(startDate, endDate, storeId);
+        repository.getLaporanTransaksiByStore(startDate, endDate, storeId).observeForever(data -> {
+            laporanTransaksi.postValue(data);
+        });
     }
-} 
+}
