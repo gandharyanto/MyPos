@@ -232,7 +232,14 @@ public class ExpenseFragment extends Fragment {
         MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker = builder.build();
         picker.addOnPositiveButtonClickListener(selection -> {
             startDate = selection.first;
-            endDate = selection.second;
+            // Set endDate to the end of the last day
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(selection.second);
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
+            cal.set(Calendar.MILLISECOND, 999);
+            endDate = cal.getTimeInMillis();
             observeExpensesByStoreAndDate(selectedStoreId, startDate, endDate);
         });
         picker.show(getParentFragmentManager(), "date_range_picker");
