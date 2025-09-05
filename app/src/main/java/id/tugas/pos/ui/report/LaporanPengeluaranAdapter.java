@@ -6,7 +6,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import id.tugas.pos.R;
 
@@ -32,7 +34,14 @@ public class LaporanPengeluaranAdapter extends RecyclerView.Adapter<LaporanPenge
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         LaporanPengeluaranItem item = data.get(position);
-        holder.tvTanggal.setText(item.getTanggal());
+        // Format epoch to dd/MM/yyyy
+        try {
+            long epoch = Long.parseLong(item.getTanggal());
+            String formattedDate = new SimpleDateFormat("dd/MM/yyyy").format(new Date(epoch));
+            holder.tvTanggal.setText(formattedDate);
+        } catch (Exception e) {
+            holder.tvTanggal.setText(item.getTanggal());
+        }
         holder.tvKategori.setText(item.getKategori());
         holder.tvNominal.setText(String.format("Rp%,.0f", item.getNominal()));
         holder.tvKeterangan.setText(item.getKeterangan());
