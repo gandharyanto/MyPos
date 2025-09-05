@@ -306,33 +306,54 @@ public class ProductRepository {
         executorService.execute(() -> {
             try {
                 android.util.Log.d("ProductRepository", "Updating product: " + product.getName() + " (ID: " + product.getId() + ")");
-                
                 // Validate product data
                 if (product.getName() == null || product.getName().trim().isEmpty()) {
                     listener.onError("Nama produk tidak boleh kosong");
                     return;
                 }
-                
                 if (product.getBarcode() == null || product.getBarcode().trim().isEmpty()) {
                     listener.onError("Kode produk tidak boleh kosong");
                     return;
                 }
-                
                 if (product.getStock() < 0) {
                     listener.onError("Stok tidak boleh negatif");
                     return;
                 }
-                
                 if (product.getPrice() < 0) {
                     listener.onError("Harga tidak boleh negatif");
                     return;
                 }
-                
+                // Fetch current product before update
+                Product currentProduct = productDao.getProductByIdAny(product.getId());
+                if (currentProduct != null) {
+                    int oldStock = currentProduct.getStock();
+                    int newStock = product.getStock();
+                    if (newStock > oldStock) {
+                        int addedQty = newStock - oldStock;
+                        StockIn stockIn = new StockIn();
+                        stockIn.productId = product.getId();
+                        stockIn.productName = product.getName();
+                        stockIn.quantity = addedQty;
+                        stockIn.createdAt = System.currentTimeMillis();
+                        stockIn.storeId = product.getStoreId();
+                        stockIn.type = "IN";
+                        stockInDao.insert(stockIn);
+                    } else if (newStock < oldStock) {
+                        int outQty = oldStock - newStock;
+                        StockIn stockOut = new StockIn();
+                        stockOut.productId = product.getId();
+                        stockOut.productName = product.getName();
+                        stockOut.quantity = outQty;
+                        stockOut.createdAt = System.currentTimeMillis();
+                        stockOut.storeId = product.getStoreId();
+                        stockOut.type = "OUT";
+                        stockInDao.insert(stockOut);
+                    }
+                }
                 // Update the product
                 productDao.update(product);
                 android.util.Log.d("ProductRepository", "Product updated successfully: " + product.getName());
                 listener.onSuccess();
-                
             } catch (Exception e) {
                 android.util.Log.e("ProductRepository", "Error updating product: " + e.getMessage());
                 listener.onError("Gagal memperbarui produk: " + e.getMessage());

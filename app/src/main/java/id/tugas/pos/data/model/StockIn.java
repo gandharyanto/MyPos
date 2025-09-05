@@ -12,5 +12,6 @@ public class StockIn {
     public int quantity;
     public long createdAt;
     public int storeId; // Tambahkan storeId
+    public String type; // "IN" atau "OUT"
     // Bisa ditambah: supplier, keterangan, userId, dsb
-} 
+}

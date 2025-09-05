@@ -4,13 +4,14 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.MediatorLiveData;
 import id.tugas.pos.data.repository.ExpenseRepository;
 import java.util.List;
 
 public class ReportPengeluaranViewModel extends AndroidViewModel {
     private final ExpenseRepository repository;
-    private final MutableLiveData<List<LaporanPengeluaranItem>> laporanPengeluaran = new MutableLiveData<>();
+    private final MediatorLiveData<List<LaporanPengeluaranItem>> laporanPengeluaran = new MediatorLiveData<>();
+    private LiveData<List<LaporanPengeluaranItem>> currentSource;
     private long startDate = 0;
     private long endDate = System.currentTimeMillis();
     private Integer storeId = null;
@@ -37,14 +38,16 @@ public class ReportPengeluaranViewModel extends AndroidViewModel {
     }
 
     private void updateLaporanPengeluaran() {
+        LiveData<List<LaporanPengeluaranItem>> newSource;
         if (storeId != null && storeId > 0) {
-            repository.getLaporanPengeluaranByStore(startDate, endDate, storeId).observeForever(data -> {
-                laporanPengeluaran.postValue(data);
-            });
+            newSource = repository.getLaporanPengeluaranByStore(startDate, endDate, storeId);
         } else {
-            repository.getLaporanPengeluaran(startDate, endDate).observeForever(data -> {
-                laporanPengeluaran.postValue(data);
-            });
+            newSource = repository.getLaporanPengeluaran(startDate, endDate);
         }
+        if (currentSource != null) {
+            laporanPengeluaran.removeSource(currentSource);
+        }
+        currentSource = newSource;
+        laporanPengeluaran.addSource(currentSource, laporanPengeluaran::setValue);
     }
 }
