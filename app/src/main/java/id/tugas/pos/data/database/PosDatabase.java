@@ -32,7 +32,7 @@ import id.tugas.pos.data.database.CategoryDao;
         StockIn.class,
         ModalAwal.class,
         Category.class
-}, version = 11, exportSchema = false)
+}, version = 12, exportSchema = false)
 public abstract class PosDatabase extends RoomDatabase {
     
     private static final String DATABASE_NAME = "pos_database";
@@ -56,8 +56,7 @@ public abstract class PosDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     PosDatabase.class,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_10_11)
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_10_11, MIGRATION_11_12)
                     .build();
             android.util.Log.d("PosDatabase", "Database instance created successfully");
         } else {
@@ -80,4 +79,12 @@ public abstract class PosDatabase extends RoomDatabase {
             }
         }
     };
-} 
+
+    // Migrasi dari versi 11 ke 12: menambahkan kolom 'type' pada tabel stock_in
+    public static final Migration MIGRATION_11_12 = new Migration(11, 12) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE stock_in ADD COLUMN type TEXT DEFAULT 'IN'");
+        }
+    };
+}
