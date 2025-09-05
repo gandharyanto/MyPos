@@ -10,11 +10,14 @@ import java.util.ArrayList;
 
 import id.tugas.pos.data.database.PosDatabase;
 import id.tugas.pos.data.database.ProductDao;
+import id.tugas.pos.data.database.StockInDao;
 import id.tugas.pos.data.model.Product;
+import id.tugas.pos.data.model.StockIn;
 
 public class ProductRepository {
     
     private ProductDao productDao;
+    private StockInDao stockInDao;
     private LiveData<List<Product>> allProducts;
     private ExecutorService executorService;
     
@@ -23,6 +26,7 @@ public class ProductRepository {
             android.util.Log.d("ProductRepository", "Initializing ProductRepository");
             PosDatabase database = PosDatabase.getInstance(application);
             productDao = database.productDao();
+            stockInDao = database.stockInDao();
             allProducts = productDao.getAllProducts();
             executorService = Executors.newSingleThreadExecutor();
             android.util.Log.d("ProductRepository", "ProductRepository initialized successfully");
@@ -81,6 +85,20 @@ public class ProductRepository {
     
     public void updateStock(int productId, int newStock) {
         executorService.execute(() -> {
+            Product currentProduct = productDao.getProductByIdAny(productId);
+            if (currentProduct != null) {
+                int oldStock = currentProduct.getStock();
+                if (newStock > oldStock) {
+                    int addedQty = newStock - oldStock;
+                    StockIn stockIn = new StockIn();
+                    stockIn.productId = productId;
+                    stockIn.productName = currentProduct.getName();
+                    stockIn.quantity = addedQty;
+                    stockIn.createdAt = System.currentTimeMillis();
+                    stockIn.storeId = currentProduct.getStoreId(); // if available
+                    stockInDao.insert(stockIn);
+                }
+            }
             productDao.updateStock(productId, newStock);
         });
     }
