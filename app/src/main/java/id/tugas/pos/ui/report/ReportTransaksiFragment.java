@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import android.widget.TextView;
 import id.tugas.pos.utils.ExcelExporter;
+import android.widget.LinearLayout;
 
 public class ReportTransaksiFragment extends Fragment {
     private LaporanTransaksiAdapter adapter;
@@ -38,8 +39,9 @@ public class ReportTransaksiFragment extends Fragment {
         btnExportPdf.setText("Export PDF");
         Button btnExportExcel = new Button(requireContext());
         btnExportExcel.setText("Export Excel");
-        ((ViewGroup) view).addView(btnExportPdf, 0);
-        ((ViewGroup) view).addView(btnExportExcel, 1);
+        LinearLayout layoutContainer = view.findViewById(R.id.layoutContainer);
+        layoutContainer.addView(btnExportPdf, 0);
+        layoutContainer.addView(btnExportExcel, 1);
         btnExportPdf.setOnClickListener(v -> exportPdf());
         btnExportExcel.setOnClickListener(v -> exportExcel());
 

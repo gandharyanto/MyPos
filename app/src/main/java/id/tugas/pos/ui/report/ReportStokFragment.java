@@ -1,10 +1,13 @@
 package id.tugas.pos.ui.report;
 
+import static android.view.View.GONE;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,15 +22,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import android.widget.TextView;
+
+import id.tugas.pos.ui.MainActivity;
 import id.tugas.pos.ui.stockin.StockInDialogFragment;
 import id.tugas.pos.utils.ExcelExporter;
+import id.tugas.pos.viewmodel.LoginViewModel;
+import id.tugas.pos.viewmodel.StoreViewModel;
 
 public class ReportStokFragment extends Fragment {
     private LaporanStokAdapter adapter;
     private ReportStokViewModel viewModel;
     private long startDate = 0;
     private long endDate = 0;
+    private TextView tvHeader;
     private TextView tvTanggalDipilih;
+    private Integer selectedStoreId = null;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -36,8 +45,9 @@ public class ReportStokFragment extends Fragment {
         btnExportPdf.setText("Export PDF");
         Button btnExportExcel = new Button(requireContext());
         btnExportExcel.setText("Export Excel");
-        ((ViewGroup) view).addView(btnExportPdf, 0);
-        ((ViewGroup) view).addView(btnExportExcel, 1);
+        LinearLayout layoutContainer = view.findViewById(R.id.layoutContainer);
+        layoutContainer.addView(btnExportPdf, 0);
+        layoutContainer.addView(btnExportExcel, 1);
         btnExportPdf.setOnClickListener(v -> exportPdf());
         btnExportExcel.setOnClickListener(v -> exportExcel());
 
@@ -49,6 +59,7 @@ public class ReportStokFragment extends Fragment {
         viewModel = new ViewModelProvider(this, new ViewModelProvider.AndroidViewModelFactory(requireActivity().getApplication())).get(ReportStokViewModel.class);
         viewModel.getLaporanStok().observe(getViewLifecycleOwner(), adapter::setData);
 
+        tvHeader = view.findViewById(R.id.tvHeader);
         tvTanggalDipilih = view.findViewById(R.id.tvTanggalDipilih);
         Button btnFilterTanggal = view.findViewById(R.id.btnFilterTanggal);
         btnFilterTanggal.setOnClickListener(v -> showDateRangePicker());
@@ -58,36 +69,25 @@ public class ReportStokFragment extends Fragment {
             new StockInDialogFragment().show(getParentFragmentManager(), "stock_in_dialog");
         });
 
+        btnTambahStokMasuk.setVisibility(GONE);
+
         // Setup store spinner for admin
-        id.tugas.pos.ui.MainActivity mainActivity = (id.tugas.pos.ui.MainActivity) requireActivity();
-        id.tugas.pos.viewmodel.LoginViewModel loginViewModel = new ViewModelProvider(requireActivity()).get(id.tugas.pos.viewmodel.LoginViewModel.class);
-        id.tugas.pos.viewmodel.StoreViewModel storeViewModel = new ViewModelProvider(requireActivity()).get(id.tugas.pos.viewmodel.StoreViewModel.class);
-        
+        MainActivity mainActivity = (MainActivity) requireActivity();
+        LoginViewModel loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
+        StoreViewModel storeViewModel = new ViewModelProvider(requireActivity()).get(StoreViewModel.class);
         if (loginViewModel.isAdmin()) {
             mainActivity.spinnerStore.setVisibility(View.VISIBLE);
             mainActivity.labelStore.setVisibility(View.VISIBLE);
-            
-            // Observe store selection for admin
             storeViewModel.getSelectedStoreId().observe(getViewLifecycleOwner(), storeId -> {
-                if (storeId != null && storeId > 0) {
-                    // Load data for selected store
-                    viewModel.loadLaporanStokByStore(startDate, endDate, storeId);
-                } else {
-                    // Load all data
-                    viewModel.loadLaporanStok(startDate, endDate);
-                }
+                selectedStoreId = (storeId != null && storeId > 0) ? storeId : null;
+                loadLaporan();
             });
         } else {
-            // For user, use their store ID
             loginViewModel.getCurrentUser().observe(getViewLifecycleOwner(), user -> {
-                if (user != null && user.getStoreId() != null) {
-                    viewModel.loadLaporanStokByStore(startDate, endDate, user.getStoreId());
-                } else {
-                    viewModel.loadLaporanStok(startDate, endDate);
-                }
+                selectedStoreId = (user != null && user.getStoreId() != null) ? user.getStoreId() : null;
+                loadLaporan();
             });
         }
-
         // Load data awal (semua tanggal)
         startDate = 0;
         endDate = System.currentTimeMillis();
@@ -95,7 +95,15 @@ public class ReportStokFragment extends Fragment {
         return view;
     }
     private void loadLaporan() {
-        viewModel.loadLaporanStok(startDate, endDate);
+        if (selectedStoreId != null && selectedStoreId > 0) {
+            viewModel.loadLaporanStokByStore(startDate, endDate, selectedStoreId);
+        } else {
+            viewModel.loadLaporanStok(startDate, endDate);
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        String tgl = (startDate == 0 ? "Semua Tanggal" : sdf.format(new Date(startDate)) + " - " + sdf.format(new Date(endDate)));
+        tvHeader.setText("Laporan Stok\n" + tgl);
+        tvTanggalDipilih.setText(tgl);
     }
     private void showDateRangePicker() {
         MaterialDatePicker.Builder<androidx.core.util.Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
@@ -104,9 +112,6 @@ public class ReportStokFragment extends Fragment {
         picker.addOnPositiveButtonClickListener(selection -> {
             startDate = selection.first;
             endDate = selection.second;
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            String tgl = sdf.format(new Date(startDate)) + " - " + sdf.format(new Date(endDate));
-            tvTanggalDipilih.setText(tgl);
             loadLaporan();
         });
         picker.show(getParentFragmentManager(), "date_range_picker");
