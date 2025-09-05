@@ -197,4 +197,8 @@ public class ExpenseRepository {
             return null;
         }
     }
-} 
+
+    public LiveData<List<Expense>> getExpensesByDateRangeAndStore(long startDate, long endDate, int storeId) {
+        return expenseDao.getExpensesByDateRangeAndStore(startDate, endDate, storeId);
+    }
+}

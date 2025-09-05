@@ -87,4 +87,7 @@ public interface ExpenseDao {
            "AND storeId = :storeId " +
            "ORDER BY expenseDate ASC")
     List<id.tugas.pos.ui.report.LaporanPengeluaranItem> getLaporanPengeluaranByStore(long startDate, long endDate, int storeId);
-} 
+
+    @Query("SELECT * FROM expenses WHERE expenseDate BETWEEN :startDate AND :endDate AND storeId = :storeId ORDER BY expenseDate DESC")
+    LiveData<List<Expense>> getExpensesByDateRangeAndStore(long startDate, long endDate, int storeId);
+}

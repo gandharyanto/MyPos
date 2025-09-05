@@ -1,179 +1,186 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <Spinner
-        android:id="@+id/spinnerStore"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:visibility="gone"
-        style="@style/SpinnerStyle"
-        android:background="@color/white"
-        android:textColor="@color/black" />
-
-    <Button
-        android:id="@+id/btnTambahPengeluaran"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Tambah Pengeluaran"
-        android:layout_marginBottom="12dp" />
-
-    <!-- Summary Cards -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="0dp"
+        <Spinner
+            android:id="@+id/spinnerStore"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp">
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"
+            style="@style/SpinnerStyle"
+            android:background="@color/white"
+            android:textColor="@color/black" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:gravity="center">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Total Pengeluaran"
-                    android:textSize="12sp"
-                    android:textColor="@color/text_secondary" />
-
-                <TextView
-                    android:id="@+id/tvTotalExpenses"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/primary"
-                    tools:text="Rp 1.000.000" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="0dp"
+        <Button
+            android:id="@+id/btnTambahPengeluaran"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp">
+            android:text="Tambah Pengeluaran"
+            android:layout_marginBottom="12dp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
+        <!-- Summary Cards -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:gravity="center">
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Jumlah Pengeluaran"
-                    android:textSize="12sp"
-                    android:textColor="@color/text_secondary" />
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
 
-                <TextView
-                    android:id="@+id/tvExpenseCount"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Pengeluaran"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvTotalExpenses"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        tools:text="Rp 1.000.000" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/primary"
-                    tools:text="10" />
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
 
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jumlah Pengeluaran"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:id="@+id/tvExpenseCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        tools:text="10" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Filter Chips -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipToday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hari Ini"
+                app:chipBackgroundColor="@color/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipWeek"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Minggu Ini"
+                app:chipBackgroundColor="@color/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bulan Ini"
+                app:chipBackgroundColor="@color/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCustom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pilih Tanggal"
+                app:chipBackgroundColor="@color/chip_background_selector" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- Expense List -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp"
+                tools:listitem="@layout/item_expense" />
+
+            <TextView
+                android:id="@+id/tvEmptyState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Tidak ada pengeluaran"
+                android:textSize="16sp"
+                android:textColor="@color/text_secondary"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+        </FrameLayout>
 
     </LinearLayout>
 
-    <!-- Filter Chips -->
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chipGroupFilter"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:singleSelection="true">
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipToday"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hari Ini"
-            app:chipBackgroundColor="@color/chip_background_selector" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipWeek"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Minggu Ini"
-            app:chipBackgroundColor="@color/chip_background_selector" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipMonth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Bulan Ini"
-            app:chipBackgroundColor="@color/chip_background_selector" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipCustom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pilih Tanggal"
-            app:chipBackgroundColor="@color/chip_background_selector" />
-
-    </com.google.android.material.chip.ChipGroup>
-
-    <!-- Expense List -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="16dp"
-            tools:listitem="@layout/item_expense" />
-
-        <TextView
-            android:id="@+id/tvEmptyState"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Tidak ada pengeluaran"
-            android:textSize="16sp"
-            android:textColor="@color/text_secondary"
-            android:visibility="gone" />
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone" />
-
-    </FrameLayout>
-
-</LinearLayout> 
+</androidx.core.widget.NestedScrollView>

@@ -43,10 +43,14 @@ public class ExpenseViewModel extends AndroidViewModel {
         return expenseRepository.getExpenseCountByStore(storeId);
     }
 
+    public LiveData<List<Expense>> getExpensesByDateRangeAndStore(long startDate, long endDate, int storeId) {
+        return expenseRepository.getExpensesByDateRangeAndStore(startDate, endDate, storeId);
+    }
+
     public void insert(Expense expense, Runnable onSuccess) {
         executor.execute(() -> {
             expenseRepository.insert(expense);
             if (onSuccess != null) onSuccess.run();
         });
     }
-} 
+}

@@ -27,6 +27,10 @@ import android.widget.ProgressBar;
 import java.util.List;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import java.util.Calendar;
 
 public class ExpenseFragment extends Fragment {
     
@@ -39,6 +43,10 @@ public class ExpenseFragment extends Fragment {
     private TextView tvEmptyState, tvTotalExpenses, tvExpenseCount;
     private int selectedStoreId = -1;
     private Spinner spinnerStore; // Tambahkan deklarasi Spinner
+    private long startDate = 0;
+    private long endDate = 0;
+    private ChipGroup chipGroupFilter;
+    private Chip chipToday, chipWeek, chipMonth, chipCustom;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +69,14 @@ public class ExpenseFragment extends Fragment {
             spinnerStore.setVisibility(View.GONE);
         }
         setupObservers(view);
+        chipGroupFilter = view.findViewById(R.id.chipGroupFilter);
+        chipToday = view.findViewById(R.id.chipToday);
+        chipWeek = view.findViewById(R.id.chipWeek);
+        chipMonth = view.findViewById(R.id.chipMonth);
+        chipCustom = view.findViewById(R.id.chipCustom);
+        setupChipListeners();
+        // Set default filter to today
+        setTodayFilter();
         return view;
     }
 
@@ -165,8 +181,73 @@ public class ExpenseFragment extends Fragment {
         });
     }
 
+    private void setupChipListeners() {
+        chipToday.setOnClickListener(v -> setTodayFilter());
+        chipWeek.setOnClickListener(v -> setWeekFilter());
+        chipMonth.setOnClickListener(v -> setMonthFilter());
+        chipCustom.setOnClickListener(v -> showCustomDatePicker());
+    }
+
+    private void setTodayFilter() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        startDate = cal.getTimeInMillis();
+        endDate = startDate + 24 * 60 * 60 * 1000 - 1;
+        observeExpensesByStoreAndDate(selectedStoreId, startDate, endDate);
+    }
+
+    private void setWeekFilter() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        startDate = cal.getTimeInMillis();
+        cal.add(Calendar.DAY_OF_WEEK, 6);
+        endDate = cal.getTimeInMillis() + 24 * 60 * 60 * 1000 - 1;
+        observeExpensesByStoreAndDate(selectedStoreId, startDate, endDate);
+    }
+
+    private void setMonthFilter() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        startDate = cal.getTimeInMillis();
+        cal.add(Calendar.MONTH, 1);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        endDate = cal.getTimeInMillis() - 1;
+        observeExpensesByStoreAndDate(selectedStoreId, startDate, endDate);
+    }
+
+    private void showCustomDatePicker() {
+        MaterialDatePicker.Builder<androidx.core.util.Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
+        builder.setTitleText("Pilih Rentang Tanggal");
+        MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker = builder.build();
+        picker.addOnPositiveButtonClickListener(selection -> {
+            startDate = selection.first;
+            endDate = selection.second;
+            observeExpensesByStoreAndDate(selectedStoreId, startDate, endDate);
+        });
+        picker.show(getParentFragmentManager(), "date_range_picker");
+    }
+
+    private void observeExpensesByStoreAndDate(int storeId, long startDate, long endDate) {
+        expenseViewModel.getExpensesByDateRangeAndStore(startDate, endDate, storeId).observe(getViewLifecycleOwner(), expenses -> {
+            expenseAdapter.setExpenses(expenses);
+            updateEmptyState(expenses == null || expenses.isEmpty());
+            updateSummary(expenses);
+        });
+    }
+
     private boolean isAdmin() {
         User user = loginViewModel.getCurrentUser().getValue();
         return user != null && user.isAdmin();
     }
-} 
+}
