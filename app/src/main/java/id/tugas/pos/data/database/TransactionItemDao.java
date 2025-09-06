@@ -92,9 +92,8 @@ public interface TransactionItemDao {
     
     @Query("SELECT ti.productName as namaProduk, 0 as stokMasuk, SUM(ti.quantity) as stokKeluar, 0 as stokTersisa " +
            "FROM transaction_items ti " +
-           "INNER JOIN transactions t ON ti.transactionId = t.id " +
            "WHERE ti.createdAt BETWEEN :startDate AND :endDate " +
-           "AND t.storeId = :storeId " +
+           "AND ti.storeId = :storeId " +
            "GROUP BY ti.productId")
     List<LaporanStokItem> getLaporanStokKeluarByStore(long startDate, long endDate, int storeId);
     

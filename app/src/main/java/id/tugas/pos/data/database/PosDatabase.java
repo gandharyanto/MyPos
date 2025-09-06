@@ -32,7 +32,7 @@ import id.tugas.pos.data.database.CategoryDao;
         StockIn.class,
         ModalAwal.class,
         Category.class
-}, version = 12, exportSchema = false)
+}, version = 13, exportSchema = false)
 public abstract class PosDatabase extends RoomDatabase {
     
     private static final String DATABASE_NAME = "pos_database";
@@ -56,7 +56,7 @@ public abstract class PosDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     PosDatabase.class,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_10_11, MIGRATION_11_12)
+                    .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                     .build();
             android.util.Log.d("PosDatabase", "Database instance created successfully");
         } else {
@@ -85,6 +85,14 @@ public abstract class PosDatabase extends RoomDatabase {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE stock_in ADD COLUMN type TEXT DEFAULT 'IN'");
+        }
+    };
+
+    // Migration from version 12 to 13: add storeId column to transaction_items
+    public static final Migration MIGRATION_12_13 = new Migration(12, 13) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE transaction_items ADD COLUMN storeId INTEGER NOT NULL DEFAULT 0");
         }
     };
 }

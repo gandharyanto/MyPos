@@ -111,7 +111,8 @@ public class ReportStokFragment extends Fragment {
         MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker = builder.build();
         picker.addOnPositiveButtonClickListener(selection -> {
             startDate = selection.first;
-            endDate = selection.second;
+            // Set endDate to the last millisecond of the selected end day
+            endDate = selection.second + (24 * 60 * 60 * 1000) - 1;
             loadLaporan();
         });
         picker.show(getParentFragmentManager(), "date_range_picker");

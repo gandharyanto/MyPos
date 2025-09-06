@@ -22,6 +22,7 @@ public class TransactionItem {
     private double discount;
     private double total;
     private long createdAt;
+    private int storeId;
 
     public TransactionItem() {
         this.createdAt = System.currentTimeMillis();
@@ -46,6 +47,18 @@ public class TransactionItem {
         this.price = price;
         this.quantity = quantity;
         this.discount = discount;
+        this.createdAt = System.currentTimeMillis();
+        calculateTotals();
+    }
+
+    public TransactionItem(int transactionId, int productId, String productName, double price, int quantity, int storeId) {
+        this.transactionId = transactionId;
+        this.productId = productId;
+        this.productName = productName;
+        this.price = price;
+        this.quantity = quantity;
+        this.discount = 0;
+        this.storeId = storeId;
         this.createdAt = System.currentTimeMillis();
         calculateTotals();
     }
@@ -128,6 +141,9 @@ public class TransactionItem {
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+
+    public int getStoreId() { return storeId; }
+    public void setStoreId(int storeId) { this.storeId = storeId; }
 
     private void calculateTotals() {
         this.subtotal = price * quantity;

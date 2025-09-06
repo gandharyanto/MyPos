@@ -106,7 +106,8 @@ public class TransaksiViewModel extends AndroidViewModel {
                     product.getId(), // productId
                     product.getName(), // productName
                     product.getPrice(), // price
-                    1 // quantity
+                    1, // quantity
+                    product.getStoreId() // storeId from Product
                 );
                 currentCart.add(newItem);
                 Log.d(TAG, "addToCart: New item added, cart size now: " + currentCart.size());
@@ -183,9 +184,9 @@ public class TransaksiViewModel extends AndroidViewModel {
         transaction.setAmountPaid(amountPaid);
         transaction.setChange(amountPaid - totalAmount);
         transaction.setStatus("COMPLETED"); // Set status to COMPLETED
-        
+
         Log.d(TAG, "processTransaction: Total: " + totalAmount + ", Paid: " + amountPaid + ", Change: " + (amountPaid - totalAmount) + ", Status: COMPLETED");
-        
+
         transactionRepository.addTransaction(transaction, new TransactionRepository.OnTransactionOperationListener() {
             @Override
             public void onSuccess() {
@@ -463,4 +464,4 @@ public class TransaksiViewModel extends AndroidViewModel {
             }
         });
     }
-} 
+}
