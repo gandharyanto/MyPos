@@ -117,6 +117,28 @@ public class ProdukViewModel extends AndroidViewModel {
         });
     }
 
+    // Safe delete method that checks for existing transactions
+    public void safeDeleteProduct(Product product, ProductRepository.ProductDeletionCallback callback) {
+        isLoading.setValue(true);
+        repository.safeDelete(product, new ProductRepository.ProductDeletionCallback() {
+            @Override
+            public void onSuccess() {
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                    callback.onSuccess();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                mainHandler.post(() -> {
+                    isLoading.setValue(false);
+                    callback.onError(error);
+                });
+            }
+        });
+    }
+
     public void searchProducts(String query) {
         if (query == null || query.trim().isEmpty()) {
             // Return all products if search is empty

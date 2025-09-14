@@ -41,3 +41,4 @@ public class ProductViewModel extends AndroidViewModel {
         productsByStore = null;
     }
 }
+

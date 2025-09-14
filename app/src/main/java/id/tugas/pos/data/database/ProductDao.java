@@ -119,4 +119,8 @@ public interface ProductDao {
 
     @Query("SELECT * FROM products WHERE storeId = :storeId AND isActive = 1 ORDER BY name ASC")
     LiveData<List<Product>> getAllProductsByStore(int storeId);
+
+    // Method to check if product has associated transactions
+    @Query("SELECT COUNT(*) FROM transaction_items WHERE productId = :productId")
+    int getTransactionCountForProduct(int productId);
 }

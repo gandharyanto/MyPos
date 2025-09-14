@@ -6,8 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-import android.widget.Spinner;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Button;
 
@@ -28,11 +26,10 @@ import java.util.List;
 
 import id.tugas.pos.R;
 import id.tugas.pos.data.model.Product;
-import id.tugas.pos.data.model.Store;
+import id.tugas.pos.data.repository.ProductRepository;
 import id.tugas.pos.ui.produk.adapter.ProductAdapter;
 import id.tugas.pos.ui.produk.dialog.AddEditProductDialog;
 import id.tugas.pos.ui.produk.dialog.AddCategoryDialog;
-import id.tugas.pos.utils.CurrencyUtils;
 import id.tugas.pos.utils.ProductRefreshManager;
 import id.tugas.pos.viewmodel.LoginViewModel;
 import id.tugas.pos.viewmodel.StoreViewModel;
@@ -420,22 +417,44 @@ public class ProdukFragment extends Fragment implements ProductAdapter.OnProduct
     }
 
     private void showDeleteConfirmationDialog(Product product) {
-        AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.AlertDialogStyle)
-                .setTitle("Hapus Produk")
-                .setMessage("Apakah Anda yakin ingin menghapus produk \"" + product.getName() + "\"?")
-                .setPositiveButton("Hapus", (dialogInterface, which) -> {
-                    viewModel.deleteProduct(product);
-                    Toast.makeText(requireContext(), "Produk berhasil dihapus", Toast.LENGTH_SHORT).show();
-                    currentDialog = null;
-                })
-                .setNegativeButton("Batal", (dialogInterface, which) -> {
-                    currentDialog = null;
-                })
-                .create();
-        
-        // Simpan dialog untuk cleanup
-        currentDialog = dialog;
-        dialog.show();
+        // First check if product can be deleted (has no transactions)
+        viewModel.safeDeleteProduct(product, new ProductRepository.ProductDeletionCallback() {
+            @Override
+            public void onSuccess() {
+                // Product can be deleted, show confirmation dialog
+                AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.AlertDialogStyle)
+                        .setTitle("Hapus Produk")
+                        .setMessage("Apakah Anda yakin ingin menghapus produk \"" + product.getName() + "\"?")
+                        .setPositiveButton("Hapus", (dialogInterface, which) -> {
+                            Toast.makeText(requireContext(), "Produk berhasil dihapus", Toast.LENGTH_SHORT).show();
+                            currentDialog = null;
+                        })
+                        .setNegativeButton("Batal", (dialogInterface, which) -> {
+                            currentDialog = null;
+                        })
+                        .create();
+
+                // Simpan dialog untuk cleanup
+                currentDialog = dialog;
+                dialog.show();
+            }
+
+            @Override
+            public void onError(String message) {
+                // Product cannot be deleted, show error message
+                AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.AlertDialogStyle)
+                        .setTitle("Tidak Dapat Menghapus Produk")
+                        .setMessage(message)
+                        .setPositiveButton("OK", (dialogInterface, which) -> {
+                            currentDialog = null;
+                        })
+                        .create();
+
+                // Simpan dialog untuk cleanup
+                currentDialog = dialog;
+                dialog.show();
+            }
+        });
     }
 
     @Override

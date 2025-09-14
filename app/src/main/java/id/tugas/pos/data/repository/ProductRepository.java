@@ -63,10 +63,38 @@ public class ProductRepository {
     
     public void delete(Product product) {
         executorService.execute(() -> {
+            // Check if product has associated transactions before deletion
+            int transactionCount = productDao.getTransactionCountForProduct(product.getId());
+            if (transactionCount > 0) {
+                throw new IllegalStateException("Produk tidak dapat dihapus karena sudah memiliki " + transactionCount + " transaksi");
+            }
             productDao.delete(product);
         });
     }
     
+    // Safe delete method that returns a callback with result
+    public void safeDelete(Product product, ProductDeletionCallback callback) {
+        executorService.execute(() -> {
+            try {
+                int transactionCount = productDao.getTransactionCountForProduct(product.getId());
+                if (transactionCount > 0) {
+                    callback.onError("Produk \"" + product.getName() + "\" tidak dapat dihapus karena sudah memiliki " + transactionCount + " transaksi");
+                } else {
+                    productDao.delete(product);
+                    callback.onSuccess();
+                }
+            } catch (Exception e) {
+                callback.onError("Gagal menghapus produk: " + e.getMessage());
+            }
+        });
+    }
+
+    // Callback interface for product deletion
+    public interface ProductDeletionCallback {
+        void onSuccess();
+        void onError(String message);
+    }
+
     public LiveData<Product> getProductById(int id) {
         return productDao.getProductById(id);
     }
