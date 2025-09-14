@@ -32,7 +32,7 @@ import id.tugas.pos.data.database.CategoryDao;
         StockIn.class,
         ModalAwal.class,
         Category.class
-}, version = 13, exportSchema = false)
+}, version = 14, exportSchema = false)
 public abstract class PosDatabase extends RoomDatabase {
     
     private static final String DATABASE_NAME = "pos_database";
@@ -56,7 +56,7 @@ public abstract class PosDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     PosDatabase.class,
                     DATABASE_NAME)
-                    .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
+                    .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
                     .build();
             android.util.Log.d("PosDatabase", "Database instance created successfully");
         } else {
@@ -93,6 +93,19 @@ public abstract class PosDatabase extends RoomDatabase {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE transaction_items ADD COLUMN storeId INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+    // Migration from version 13 to 14: add new fields to modal_awal table
+    public static final Migration MIGRATION_13_14 = new Migration(13, 14) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            // Add new columns to modal_awal table
+            database.execSQL("ALTER TABLE modal_awal ADD COLUMN saldoSebelum REAL NOT NULL DEFAULT 0.0");
+            database.execSQL("ALTER TABLE modal_awal ADD COLUMN saldoSesudah REAL NOT NULL DEFAULT 0.0");
+            database.execSQL("ALTER TABLE modal_awal ADD COLUMN tipe TEXT DEFAULT 'INITIAL'");
+            database.execSQL("ALTER TABLE modal_awal ADD COLUMN keterangan TEXT DEFAULT ''");
+            database.execSQL("ALTER TABLE modal_awal ADD COLUMN createdAt INTEGER NOT NULL DEFAULT 0");
         }
     };
 }

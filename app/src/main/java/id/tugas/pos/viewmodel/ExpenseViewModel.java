@@ -9,14 +9,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import id.tugas.pos.data.model.Expense;
 import id.tugas.pos.data.repository.ExpenseRepository;
+import id.tugas.pos.utils.ModalAwalManager;
 
 public class ExpenseViewModel extends AndroidViewModel {
     private ExpenseRepository expenseRepository;
+    private ModalAwalManager modalAwalManager;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public ExpenseViewModel(@NonNull Application application) {
         super(application);
         expenseRepository = new ExpenseRepository(application);
+        modalAwalManager = new ModalAwalManager(application);
     }
 
     public LiveData<List<Expense>> getAllExpenses() {
@@ -50,7 +53,18 @@ public class ExpenseViewModel extends AndroidViewModel {
     public void insert(Expense expense, Runnable onSuccess) {
         executor.execute(() -> {
             expenseRepository.insert(expense);
+
+            // Notify modal awal manager about new expense
+            if (expense.getStoreId() > 0) {
+                modalAwalManager.onExpenseAdded(expense.getStoreId(), expense.getAmount());
+            }
+
             if (onSuccess != null) onSuccess.run();
         });
+    }
+
+    // Method to get modal manager for fragments that need it
+    public ModalAwalManager getModalAwalManager() {
+        return modalAwalManager;
     }
 }

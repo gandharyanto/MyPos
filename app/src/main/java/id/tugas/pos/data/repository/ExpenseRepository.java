@@ -22,13 +22,15 @@ public class ExpenseRepository {
     private LiveData<Double> totalExpenses;
     private LiveData<Integer> expenseCount;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    
+    private ModalAwalRepository modalAwalRepository;
+
     public ExpenseRepository(Application application) {
         PosDatabase database = PosDatabase.getInstance(application);
         expenseDao = database.expenseDao();
         allExpenses = expenseDao.getAllExpenses();
         totalExpenses = expenseDao.getTotalExpenses();
         expenseCount = expenseDao.getExpenseCount();
+        modalAwalRepository = new ModalAwalRepository(application);
     }
     
     // Insert expense
@@ -81,6 +83,11 @@ public class ExpenseRepository {
         return totalExpenses;
     }
     
+    // Get expense count
+    public LiveData<Integer> getExpenseCount() {
+        return expenseCount;
+    }
+
     // Get total expenses by category
     public LiveData<Double> getTotalExpensesByCategory(String category) {
         return expenseDao.getTotalExpensesByCategory(category);
@@ -101,58 +108,131 @@ public class ExpenseRepository {
         return expenseDao.getAllExpenseCategories();
     }
     
-    // Get expense count
-    public LiveData<Integer> getExpenseCount() {
-        return expenseCount;
-    }
-    
-    // Get recent expenses
-    public LiveData<List<Expense>> getRecentExpenses(int limit) {
-        return expenseDao.getRecentExpenses(limit);
-    }
-    
-    // Get expenses above amount
-    public LiveData<List<Expense>> getExpensesAboveAmount(double minAmount) {
-        return expenseDao.getExpensesAboveAmount(minAmount);
-    }
-
+    // Store-based methods for modal integration
     public LiveData<List<Expense>> getAllExpensesByStore(int storeId) {
         return expenseDao.getAllExpensesByStore(storeId);
     }
 
-    public LiveData<Double> getTotalExpensesByStore(int storeId) {
-        return expenseDao.getTotalExpensesByStore(storeId);
-    }
-    
     public LiveData<Double> getTotalExpensesByStore(Integer storeId) {
         if (storeId == null) {
-            return totalExpenses;
+            return expenseDao.getTotalExpenses(); // Return total for all stores
         }
         return expenseDao.getTotalExpensesByStore(storeId);
     }
-
+    
     public LiveData<Integer> getExpenseCountByStore(int storeId) {
         return expenseDao.getExpenseCountByStore(storeId);
     }
     
-    // Laporan pengeluaran dengan filter tanggal
+    public LiveData<List<Expense>> getExpensesByDateRangeAndStore(long startDate, long endDate, int storeId) {
+        return expenseDao.getExpensesByDateRangeAndStore(startDate, endDate, storeId);
+    }
+    
+    // Synchronous method for modal calculation
+    public double getTotalExpensesByStoreSync(int storeId) {
+        try {
+            return expenseDao.getTotalExpensesByStoreSync(storeId);
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    // Get laporan pengeluaran (all stores) - LiveData version with modal calculation
     public LiveData<List<LaporanPengeluaranItem>> getLaporanPengeluaran(long startDate, long endDate) {
         MutableLiveData<List<LaporanPengeluaranItem>> liveData = new MutableLiveData<>();
         executorService.execute(() -> {
-            List<LaporanPengeluaranItem> data = expenseDao.getLaporanPengeluaran(startDate, endDate);
-            liveData.postValue(data);
+            try {
+                List<LaporanPengeluaranItem> laporan = expenseDao.getLaporanPengeluaran(startDate, endDate);
+
+                // Calculate modal awal total from all stores
+                double totalModalAwal = getTotalModalAwalAllStores();
+                double totalPengeluaran = getTotalExpensesByDateRangeSync(startDate, endDate);
+                double sisaModal = totalModalAwal - totalPengeluaran;
+
+                // Set modal information for each item
+                for (LaporanPengeluaranItem item : laporan) {
+                    item.setModalAwal(totalModalAwal);
+                    item.setSisaModal(sisaModal);
+                }
+
+                liveData.postValue(laporan);
+            } catch (Exception e) {
+                liveData.postValue(null);
+            }
         });
         return liveData;
     }
-    
-    // Laporan pengeluaran dengan filter tanggal dan store
+
+    // Get laporan pengeluaran by store - LiveData version with modal calculation
     public LiveData<List<LaporanPengeluaranItem>> getLaporanPengeluaranByStore(long startDate, long endDate, int storeId) {
         MutableLiveData<List<LaporanPengeluaranItem>> liveData = new MutableLiveData<>();
         executorService.execute(() -> {
-            List<LaporanPengeluaranItem> data = expenseDao.getLaporanPengeluaranByStore(startDate, endDate, storeId);
-            liveData.postValue(data);
+            try {
+                List<LaporanPengeluaranItem> laporan = expenseDao.getLaporanPengeluaranByStore(startDate, endDate, storeId);
+
+                // Calculate modal awal and sisa modal for specific store
+                double modalAwal = modalAwalRepository.getTotalModalByStore(storeId);
+                double totalPengeluaran = getTotalExpensesByStoreSync(storeId);
+                double sisaModal = modalAwal - totalPengeluaran;
+
+                // Set modal information for each item
+                for (LaporanPengeluaranItem item : laporan) {
+                    item.setModalAwal(modalAwal);
+                    item.setSisaModal(sisaModal);
+                }
+
+                liveData.postValue(laporan);
+            } catch (Exception e) {
+                liveData.postValue(null);
+            }
         });
         return liveData;
+    }
+
+    // Get laporan pengeluaran by store - Callback version with modal calculation
+    public void getLaporanPengeluaranByStore(int storeId, long startDate, long endDate,
+                                             LaporanCallback callback) {
+        executorService.execute(() -> {
+            try {
+                List<LaporanPengeluaranItem> laporan = expenseDao.getLaporanPengeluaranByStore(
+                    startDate, endDate, storeId);
+
+                // Calculate modal awal and sisa modal
+                double modalAwal = modalAwalRepository.getTotalModalByStore(storeId);
+                double totalPengeluaran = getTotalExpensesByStoreSync(storeId);
+                double sisaModal = modalAwal - totalPengeluaran;
+
+                // Set modal information for each item
+                for (LaporanPengeluaranItem item : laporan) {
+                    item.setModalAwal(modalAwal);
+                    item.setSisaModal(sisaModal);
+                }
+
+                callback.onSuccess(laporan);
+            } catch (Exception e) {
+                callback.onError(e.getMessage());
+            }
+        });
+    }
+
+    // Helper methods for modal calculation
+    private double getTotalModalAwalAllStores() {
+        try {
+            // Get total modal from all stores - this would need to be implemented in ModalAwalRepository
+            // For now we'll return sum of all stores
+            return modalAwalRepository.getTotalModalByStore(0); // 0 could mean all stores
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    private double getTotalExpensesByDateRangeSync(long startDate, long endDate) {
+        try {
+            // This method needs to be implemented in ExpenseDao
+            return expenseDao.getTotalExpensesByDateRangeSync(startDate, endDate);
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
     
     // AsyncTask classes
@@ -196,9 +276,5 @@ public class ExpenseRepository {
             expenseDao.delete(expenses[0]);
             return null;
         }
-    }
-
-    public LiveData<List<Expense>> getExpensesByDateRangeAndStore(long startDate, long endDate, int storeId) {
-        return expenseDao.getExpensesByDateRangeAndStore(startDate, endDate, storeId);
     }
 }

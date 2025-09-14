@@ -28,8 +28,10 @@
     <color name="on_error">#FFFFFF</color>
     <color name="warning">#FF9800</color>
     <color name="success">#4CAF50</color>
+    <color name="success_dark">#388E3C</color>
     <color name="info">#2196F3</color>
-    
+    <color name="info_light">#E3F2FD</color>
+
     <!-- UI Colors -->
     <color name="divider">#E0E0E0</color>
     <color name="border_light">#E0E0E0</color>
@@ -37,7 +39,8 @@
     <color name="text_primary">#000000</color>
     <color name="text_secondary">#757575</color>
     <color name="text_hint">#757575</color>
-    
+    <color name="light_gray">#F5F5F5</color>
+
     <!-- Business Colors -->
     <color name="profit">#4CAF50</color>
     <color name="loss">#F44336</color>
@@ -52,26 +55,10 @@
     <color name="colorSecondaryVariant">#E64A19</color>
     <color name="colorOnSecondary">#FFFFFF</color>
     <color name="colorAccent">#4CAF50</color>
-    <color name="colorAccentVariant">#388E3C</color>
-    <color name="colorSurface">#FFFFFF</color>
-    <color name="colorOnSurface">#000000</color>
-    <color name="colorBackground">#FFFFFF</color>
-    <color name="colorOnBackground">#000000</color>
     <color name="colorError">#F44336</color>
     <color name="colorOnError">#FFFFFF</color>
-    <color name="colorWarning">#FF9800</color>
-    <color name="colorSuccess">#4CAF50</color>
-    <color name="colorInfo">#2196F3</color>
-    <color name="colorDivider">#E0E0E0</color>
-    <color name="colorCardBackground">#FFFFFF</color>
-    <color name="colorTextPrimary">#000000</color>
-    <color name="colorTextSecondary">#000000</color>
-    <color name="colorTextHint">#757575</color>
-    <color name="colorProfit">#4CAF50</color>
-    <color name="colorLoss">#F44336</color>
-    <color name="colorNeutral">#9E9E9E</color>
-    
-    <!-- Basic Colors -->
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <!-- Basic Android Colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 </resources>

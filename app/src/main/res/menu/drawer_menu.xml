@@ -23,6 +23,11 @@
             android:title="Riwayat" />
         
         <item
+            android:id="@+id/nav_modal_awal"
+            android:icon="@drawable/ic_trending_up"
+            android:title="Modal Awal" />
+
+        <item
             android:id="@+id/nav_expense"
             android:icon="@drawable/ic_expense"
             android:title="Pengeluaran" />
@@ -49,7 +54,7 @@
         <item
             android:id="@+id/nav_logout"
             android:icon="@drawable/ic_logout"
-            android:title="Logout" />
+            android:title="Keluar" />
     </group>
     
-</menu> 
+</menu>

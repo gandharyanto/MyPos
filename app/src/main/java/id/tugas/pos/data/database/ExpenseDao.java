@@ -90,4 +90,15 @@ public interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE expenseDate BETWEEN :startDate AND :endDate AND storeId = :storeId ORDER BY expenseDate DESC")
     LiveData<List<Expense>> getExpensesByDateRangeAndStore(long startDate, long endDate, int storeId);
+
+    @Query("SELECT SUM(amount) FROM expenses WHERE storeId = :storeId")
+    Double getTotalExpensesByStoreSync(int storeId);
+
+    // Add method for getting total expenses by date range synchronously
+    @Query("SELECT SUM(amount) FROM expenses WHERE expenseDate BETWEEN :startDate AND :endDate")
+    Double getTotalExpensesByDateRangeSync(long startDate, long endDate);
+
+    // Add method for getting total expenses sync (all stores) when storeId is null
+    @Query("SELECT SUM(amount) FROM expenses")
+    Double getTotalExpensesSyncAllStores();
 }

@@ -443,6 +443,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 getSupportActionBar().setTitle("Pengaturan");
                 getSupportActionBar().setSubtitle(null);
             }
+        } else if (itemId == R.id.nav_modal_awal) {
+            // Modal awal navigation - available for all users
+            loadFragment(new id.tugas.pos.ui.modal.ModalAwalFragment());
+            getSupportActionBar().setTitle("Modal Awal");
+            getSupportActionBar().setSubtitle(null);
         } else if (itemId == R.id.nav_logout) {
             logout();
         }
